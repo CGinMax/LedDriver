@@ -421,8 +421,6 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			}
 			ImGui::SameLine(); if (ImGui::Button(u8"¹Ø±ÕÑÝÊ¾")) is_start_play = false; ImGui::SameLine();
 			if (ImGui::Button(u8"±£´æ")) {
-				/*videoFile = LedFileDialog::OpenSaveFileDialog();*/
-
 			}
 			
 			break;
