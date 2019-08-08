@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="LedDriver">
+      <UniqueIdentifier>{8da33e61-d015-4dec-bbc4-c74da814576a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{0ae261a3-62d5-4a52-9b83-abf61320a0a1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LedWindow.cpp">
+      <Filter>LedDriver</Filter>
+    </ClCompile>
+    <ClCompile Include="LedReadPhoto.cpp">
+      <Filter>LedDriver</Filter>
+    </ClCompile>
+    <ClCompile Include="LedFileDialog.cpp">
+      <Filter>LedDriver</Filter>
+    </ClCompile>
+    <ClCompile Include="LedDriver.cpp">
+      <Filter>LedDriver</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_draw.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_glfw.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_opengl2.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_widgets.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawManage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancePageData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LedReadVideo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LedWindow.h">
+      <Filter>LedDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="LedReadPhoto.h">
+      <Filter>LedDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="LedFileDialog.h">
+      <Filter>LedDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="LedDriver.h">
+      <Filter>LedDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_truetype.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imconfig.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_glfw.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_opengl2.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_rectpack.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_textedit.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawManage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InstancePageData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomTypes.h">
+      <Filter>LedDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="LedReadVideo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_internal.h">
+      <Filter>External</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
