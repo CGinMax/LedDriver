@@ -429,6 +429,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			}
 			ImGui::SameLine(); if (ImGui::Button(u8"¹Ø±ÕÑÝÊ¾")) is_start_play = false; ImGui::SameLine();
 			if (ImGui::Button(u8"±£´æ")) {
+
 			} 
 			
 			break;
@@ -537,6 +538,8 @@ std::string LedDriver::SelectFileNameDialog()
 std::string LedDriver::SaveDataToFile()
 {
 	std::string saveFileName = LedFileDialog::OpenSaveFileDialog();
+	HANDLE hFile = CreateFile(saveFileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	//WriteFile(hFile,)
 	return saveFileName;
 }
 
