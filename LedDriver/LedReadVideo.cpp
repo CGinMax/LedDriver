@@ -15,15 +15,13 @@ LedReadVideo::~LedReadVideo()
 
 void LedReadVideo::Init(std::string initFile, int area[2])
 {
-
+	if (!videoFrameList.empty())
+		videoFrameList.clear();
 	m_fileName = initFile;
 	m_video.open(m_fileName);
 	while (m_video.read(m_videoFrame)) {
 		ResizeFrameThreshold(area[0] * 16, area[1] * 16);
-		//CutFrameImage(area[0], area[1]);
-		//MakePrimitiveInfo(area[0]);
-		//m_ceilImage.clear();
-		//vCoordinate.clear();		
+				
 	}
 	m_frameTime = 1000.0 / m_video.get(CV_CAP_PROP_FPS);
 	m_video.release();
@@ -35,7 +33,8 @@ void LedReadVideo::ResizeFrameThreshold(int frameWidth, int frameHeight)
 		cvtColor(m_videoFrame, m_videoFrame, COLOR_BGR2GRAY);
 		cv::threshold(m_videoFrame, m_videoFrame, 125, 255, CV_THRESH_BINARY);
 		resize(m_videoFrame, m_videoFrame, Size(frameWidth, frameHeight));
-		videoFrameVector.push_back(m_videoFrame);
+		//videoFrameVector.push_back(m_videoFrame);
+		videoFrameList.push_back(m_videoFrame);
 	}
 	//imwrite("C:\\Users\\CGinMax\\Desktop\\ledimage\\frame.jpg", videoFrame);
 }
@@ -56,12 +55,12 @@ void LedReadVideo::ResizeFrameThreshold(int frameWidth, int frameHeight)
 //	}
 //}
 
-std::vector<cv::Mat> LedReadVideo::CutFrameImage(cv::Mat tmpFrame, int nCol, int nRow)
+std::deque<cv::Mat> LedReadVideo::CutFrameImage(cv::Mat tmpFrame, int nCol, int nRow)
 {
 	int nCeilWidth = tmpFrame.cols / nCol;
 	int nCeilHeight = tmpFrame.rows / nRow;
 	Mat roi_img, cuted_img;
-	std::vector<Mat> ceilFrame;
+	std::deque<Mat> ceilFrame;
 	for (int j = 0; j < nRow; j++) {
 		for (int i = 0; i < nCol; i++) {
 
@@ -91,10 +90,10 @@ std::vector<cv::Mat> LedReadVideo::CutFrameImage(cv::Mat tmpFrame, int nCol, int
 //	}
 //}
 
-std::vector<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, int nRow)
+std::list<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, int nRow)
 {
-	std::vector<LedInt2> frameCoordinate;
-	std::vector<Mat> vCutedFrame = CutFrameImage(tmpFrame, nCol, nRow);
+	std::list<LedInt2> frameCoordinate;
+	std::deque<Mat> vCutedFrame = CutFrameImage(tmpFrame, nCol, nRow);
 	for (size_t i = 0; i < vCutedFrame.size(); i++) {
 		/* 用迭代器访问每个橡素，并取平均值*/
 		//int mc = 0;
@@ -132,6 +131,11 @@ std::vector<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol,
 	}
 
 	return frameCoordinate;
+}
+
+std::list<cv::Mat> LedReadVideo::GetFrameList()
+{
+	return videoFrameList;
 }
 
 double LedReadVideo::GetFrameTime()

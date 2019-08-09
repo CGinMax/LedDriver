@@ -5,11 +5,18 @@
 #include <iostream>
 #include <algorithm>
 #include <windows.h>
+#include <process.h>
 #include <exception>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 //#include <ShlObj.h>
 
+void __cdecl ThreadInitVideo(void *param)
+{
+	LedDriver *pld = (LedDriver*)param;
+	pld->InitVideo();
+	_endthread();
+}
 
 std::string ToUTF8(const std::string str)
 {
@@ -64,7 +71,7 @@ LedDriver::LedDriver()
 	is_init_open = false;
 	is_start_play = false;
 	is_video_play = false;
-	current_mode = 0;
+	nCurrentMode = 0;
 	radio_select = 0;
 	nPageCount = 0;
 	//this->Init();
@@ -227,22 +234,22 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
-	static size_t frameindex=0;
 	static double fNowTime = ImGui::GetTime();
 
-	if (frameindex < testVideo.videoFrameVector.size()) {
-		std::vector<LedInt2> vdrawImage = testVideo.MakePrimitiveInfo(testVideo.videoFrameVector[frameindex], vertex_area_size[0], vertex_area_size[1]);;
-		for (size_t i = 0; i < vdrawImage.size(); i++) {
-			draw_list->AddCircleFilled(ImVec2(firstx + vdrawImage.at(i).y*draw_area_size, firsty + vdrawImage.at(i).x*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+	if (frameiter != testVideo.videoFrameList.end()) {
+		std::list<LedInt2> vdrawImage = testVideo.MakePrimitiveInfo(*frameiter, vertex_area_size[0], vertex_area_size[1]);;
+		
+		for (auto liter = vdrawImage.begin(); liter != vdrawImage.end(); liter++) {
+			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).y*draw_area_size, firsty + (*liter).x*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
 		}
 		//fNowTime += (1000.0f / ImGui::GetIO().Framerate);
-		if (ImGui::GetTime()-fNowTime > (testVideo.GetFrameTime()/1000.0)) {
-			frameindex++;
+		if (ImGui::GetTime() - fNowTime > (testVideo.GetFrameTime() / 1000.0)) {
+			frameiter++;
 			fNowTime = ImGui::GetTime();
 		}
 	}
 	else {
-		frameindex = 0;
+		frameiter = testVideo.videoFrameList.begin();
 	}
 	
 }
@@ -339,6 +346,7 @@ void LedDriver::InitControlWindow()
 		is_init_vertex = false;
 		this->Init();
 	}
+	ImGui::SameLine();
 	if (is_concern)
 		ImGui::Text(u8"设置完成");
 
@@ -352,8 +360,8 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 	if (ImGui::Begin(u8"点阵操作", false))
 	{
 		//ImGui::TreeNode(u8"手动选择模式");
-		ImGui::Combo(u8"模式选择", &current_mode, u8"手动选择模式\0Video模式\0\0");
-		switch (current_mode)
+		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"手动选择模式\0Video模式\0\0");
+		switch (nCurrentMode)
 		{
 		case 0:
 			/*添加一页选项页*/
@@ -421,7 +429,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			}
 			ImGui::SameLine(); if (ImGui::Button(u8"关闭演示")) is_start_play = false; ImGui::SameLine();
 			if (ImGui::Button(u8"保存")) {
-			}
+			} 
 			
 			break;
 		case 1:
@@ -429,13 +437,15 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				videoFile = SelectFileNameDialog();
 				//videoFile = std::string("C:\\Users\\CGinMax\\Desktop\\ledimage\\test.mp4");
 				//初始化图片
-				testVideo.Init(videoFile, vertex_area_size);
+				HANDLE hThread = (HANDLE)_beginthread(ThreadInitVideo, 0, (void*)this);
+				//testVideo.Init(videoFile, vertex_area_size);
 			}
 			ImGui::SameLine();
 			ImGui::Text(videoFile.c_str());
 
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
+				frameiter = testVideo.videoFrameList.begin();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(u8"关闭演示"))
@@ -453,9 +463,6 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 	ImGui::End();//End model control
 }
 
-void LedDriver::InitVertex()
-{
-}
 
 void LedDriver::Clear()
 {
@@ -513,6 +520,11 @@ void LedDriver::MouseClickDraw(int pageindex)
 			sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] = sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] ? 0 : 1;			//central_points_pos[cy*vertex_area_size[0] + cx] = central_points_pos[cy*vertex_area_size[0] + cx] ? 0 : 1;
 
 	}
+}
+
+void LedDriver::InitVideo()
+{
+	testVideo.Init(videoFile, vertex_area_size);
 }
 
 std::string LedDriver::SelectFileNameDialog()
