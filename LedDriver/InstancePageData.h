@@ -16,6 +16,7 @@ public:
 	//ÊÇ·ñ½¥±ä
 	bool bGradientNone2Fill;
 	bool bGradientFill2None;
+	bool bModify;
 	int nCanvasSize[2];
 	float fTime;
 	std::string szTabName;

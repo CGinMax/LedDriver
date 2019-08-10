@@ -5,8 +5,9 @@ InstancePageData::InstancePageData()
 	bOpen = true;
 	bCheckMouse = false;
 	bGradientNone2Fill = bGradientFill2None = false;
+	bModify = false;
 	fTime = 0.0f;
-	nTickTime = 0.0;		
+	nTickTime = 0.0;	
 }
 
 

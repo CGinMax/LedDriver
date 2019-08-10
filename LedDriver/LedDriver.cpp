@@ -382,16 +382,23 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 						sPage.erase(tIter); continue;
 					}
 
-					if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen))) {
+					ImGuiTabItemFlags tiflag = (sPage[i].bModify ? ImGuiTabItemFlags_UnsavedDocument : 0);
+					if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
 						ImGui::Checkbox(u8"选点", &(sPage[i].bCheckMouse)); ImGui::SameLine();
 						//ImGui::CheckboxFlags()
-						if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill)))
+						if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill))) {
 							sPage[i].bGradientFill2None = false;
+							sPage[i].bModify = true;
+						}
 						ImGui::SameLine();
-						if (ImGui::Checkbox(u8"渐变:亮到暗", &(sPage[i].bGradientFill2None)))
+						if (ImGui::Checkbox(u8"渐变:亮到暗", &(sPage[i].bGradientFill2None))) {
 							sPage[i].bGradientNone2Fill = false;
+							sPage[i].bModify = true;
+						}
 						
-						ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime));
+						if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime))) {
+							sPage[i].bModify = true;
+						}
 						if (ImGui::Button(u8"确定")) {
 							if (!sPage[i].vEffectPoints.empty())
 								sPage[i].vEffectPoints.clear();
@@ -404,7 +411,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 								sPage[i].vEffectPoints.push_back(LedInt2(dirc%vertex_area_size[0], dirc / vertex_area_size[0]));
 								effIter = std::find_if(effIter + 1, sPage[i].vnCanvas.end(), [](int v) {return (v != 0); });
 							}
-
+							sPage[i].bModify = false;
 						}
 
 						if (!is_start_play)
@@ -412,6 +419,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 						ImGui::EndTabItem();
 					}
 					if (sPage[i].bCheckMouse) {
+						sPage[i].bModify = true;
 						ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
 						MouseClickDraw(i);
 					}
