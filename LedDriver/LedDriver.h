@@ -12,6 +12,8 @@
 #include "LedReadVideo.h"
 //#include "DrawManage.h"
 
+
+
 class LedDriver
 {
 public:
@@ -59,6 +61,7 @@ private:
 	LedReadVideo testVideo;
 	std::list<cv::Mat>::iterator frameiter;
 
+	std::string saveFileName;
 	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
 	void RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
 	std::stack<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection);
