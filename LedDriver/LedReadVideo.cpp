@@ -13,47 +13,39 @@ LedReadVideo::~LedReadVideo()
 	
 }
 
-void LedReadVideo::Init(std::string initFile, int area[2])
+void LedReadVideo::Init(int area[2])
 {
-	if (!videoFrameList.empty())
-		videoFrameList.clear();
-	m_fileName = initFile;
+	if (!m_videoFrameList.empty()) {
+		m_videoFrameList.clear();
+		m_videoPrimitiveData.clear();
+	}
+	cv::Mat videoFrame;
 	m_video.open(m_fileName);
-	while (m_video.read(m_videoFrame)) {
-		ResizeFrameThreshold(area[0] * 16, area[1] * 16);
-				
+	while (m_video.read(videoFrame)) {
+		ResizeFrameThreshold(videoFrame, area[0] * 16, area[1] * 16);				
 	}
 	m_frameTime = 1000.0 / m_video.get(CV_CAP_PROP_FPS);
+	m_frameCount = (int)m_video.get(CV_CAP_PROP_FRAME_COUNT);
 	m_video.release();
-}
 
-void LedReadVideo::ResizeFrameThreshold(int frameWidth, int frameHeight)
-{
-	if (m_videoFrame.data) {
-		cvtColor(m_videoFrame, m_videoFrame, COLOR_BGR2GRAY);
-		cv::threshold(m_videoFrame, m_videoFrame, 125, 255, CV_THRESH_BINARY);
-		resize(m_videoFrame, m_videoFrame, Size(frameWidth, frameHeight));
-		//videoFrameVector.push_back(m_videoFrame);
-		videoFrameList.push_back(m_videoFrame);
+	std::list<cv::Mat>::iterator frameiter = m_videoFrameList.begin();
+	while (frameiter != m_videoFrameList.end()) {
+		std::list<LedInt2> framePriDt = MakePrimitiveInfo(*frameiter, area[0], area[1]);
+		m_videoPrimitiveData.push_back(framePriDt);
+		frameiter++;
 	}
-	//imwrite("C:\\Users\\CGinMax\\Desktop\\ledimage\\frame.jpg", videoFrame);
+	m_videoPrimitiveData.shrink_to_fit();
 }
 
-//void LedReadVideo::CutFrameImage(int nCol, int nRow)
-//{
-//	int nCeilWidth = videoFrame.cols / nCol;
-//	int nCeilHeight = videoFrame.rows / nRow;
-//	Mat roi_img, cuted_img;
-//	for (int j = 0; j < nRow; j++) {
-//		for (int i = 0; i < nCol; i++) {
-//			
-//			cv::Rect tmprect(i*nCeilWidth, j*nCeilHeight, nCeilWidth, nCeilHeight);
-//			cuted_img = cv::Mat(videoFrame, tmprect);
-//			roi_img = cuted_img.clone();
-//			m_ceilImage.push_back(roi_img);
-//		}
-//	}
-//}
+void LedReadVideo::ResizeFrameThreshold(cv::Mat frameImage, int frameWidth, int frameHeight)
+{
+	if (frameImage.data) {
+		cvtColor(frameImage, frameImage, COLOR_BGR2GRAY);
+		cv::threshold(frameImage, frameImage, 125, 255, CV_THRESH_BINARY);
+		resize(frameImage, frameImage, Size(frameWidth, frameHeight));
+		m_videoFrameList.push_back(frameImage);
+	}
+}
 
 std::deque<cv::Mat> LedReadVideo::CutFrameImage(cv::Mat tmpFrame, int nCol, int nRow)
 {
@@ -72,23 +64,6 @@ std::deque<cv::Mat> LedReadVideo::CutFrameImage(cv::Mat tmpFrame, int nCol, int 
 	}
 	return ceilFrame;
 }
-
-//void LedReadVideo::MakePrimitiveInfo(int nCols)
-//{
-//	for (size_t i = 0; i < m_ceilImage.size(); i++) {
-//		int mc = 0;
-//		for (cv::Mat_<uchar>::iterator point_iter = m_ceilImage.at(i).begin<uchar>(); point_iter != m_ceilImage.at(i).end<uchar>(); point_iter++) {
-//			if ((int)(*point_iter) > 125)
-//				mc++;
-//			//if ((int)(point_iter))
-//		}
-//
-//		int nEff = mc > ((m_ceilImage[i].rows*m_ceilImage[i].cols) / 4) ? 1 : 0;
-//		if (nEff) {
-//			vCoordinate.push_back(LedInt2(i / nCols, i % nCols));
-//		}
-//	}
-//}
 
 std::list<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, int nRow)
 {
@@ -133,12 +108,23 @@ std::list<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, i
 	return frameCoordinate;
 }
 
-std::list<cv::Mat> LedReadVideo::GetFrameList()
+void LedReadVideo::SetVideoFileName(std::string sFilename)
 {
-	return videoFrameList;
+	m_fileName = sFilename;
+}
+
+std::string LedReadVideo::GetVideoFileName()
+{
+	return m_fileName;
 }
 
 double LedReadVideo::GetFrameTime()
 {
 	return m_frameTime;
+}
+
+int LedReadVideo::GetFrameCount()
+{
+	
+	return m_frameCount;
 }

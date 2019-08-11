@@ -1,9 +1,10 @@
 #include "LedDriver.h"
 #include "imgui_internal.h"
 #include "LedFileDialog.h"
+#include <iostream>
+#include <cstring>
 #include <fstream>
 #include <iterator>
-#include <iostream>
 #include <algorithm>
 #include <cstdio>
 #include <windows.h>
@@ -23,7 +24,14 @@ void __cdecl ThreadInitVideo(void *param)
 void __cdecl ThreadSaveManual(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	pld->SaveDataToFile();
+	pld->SaveManualDataToFile();
+	_endthread();
+}
+
+void __cdecl ThreadSaveVideo(void *param)
+{
+	LedDriver *pld = (LedDriver*)param;
+	pld->SaveVideoDataToFile();
 	_endthread();
 }
 
@@ -233,21 +241,21 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
 	static double fNowTime = ImGui::GetTime();
-
-	if (frameiter != testVideo.videoFrameList.end()) {
-		std::list<LedInt2> vdrawImage = testVideo.MakePrimitiveInfo(*frameiter, vertex_area_size[0], vertex_area_size[1]);;
+	static size_t frameIndex = 0;
+	if (frameIndex < testVideo.m_videoPrimitiveData.size()){
+		std::list<LedInt2> vdrawImage = testVideo.m_videoPrimitiveData[frameIndex];
 		
 		for (auto liter = vdrawImage.begin(); liter != vdrawImage.end(); liter++) {
 			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).y*draw_area_size, firsty + (*liter).x*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
 		}
 		//fNowTime += (1000.0f / ImGui::GetIO().Framerate);
 		if (ImGui::GetTime() - fNowTime > (testVideo.GetFrameTime() / 1000.0)) {
-			frameiter++;
+			frameIndex++;
 			fNowTime = ImGui::GetTime();
 		}
 	}
 	else {
-		frameiter = testVideo.videoFrameList.begin();
+		frameIndex = 0;
 	}
 	
 }
@@ -447,25 +455,26 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			break;
 		case 1:
 			if (ImGui::Button(u8"导入")) {
-				videoFile = SelectFileNameDialog();
+				testVideo.SetVideoFileName(SelectFileNameDialog());
 				//videoFile = std::string("C:\\Users\\CGinMax\\Desktop\\ledimage\\test.mp4");
 				//初始化图片
 				_beginthread(ThreadInitVideo, 0, (void*)this);
 				//testVideo.Init(videoFile, vertex_area_size);
 			}
 			ImGui::SameLine();
-			ImGui::Text(videoFile.c_str());
+			ImGui::Text(testVideo.GetVideoFileName().c_str());
 
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
-				frameiter = testVideo.videoFrameList.begin();
+				
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(u8"关闭演示"))
 				is_video_play = false;
 			ImGui::SameLine();
 			if (ImGui::Button(u8"保存")) {
-				
+				saveFileName = LedFileDialog::OpenSaveFileDialog();
+				_beginthread(ThreadSaveVideo, 0, (void*)this);
 			}
 			ImGui::SameLine();
 			ImGui::Button(u8"打开串口");
@@ -537,7 +546,7 @@ void LedDriver::MouseClickDraw(int pageindex)
 
 void LedDriver::InitVideo()
 {
-	testVideo.Init(videoFile, vertex_area_size);
+	testVideo.Init(vertex_area_size);
 }
 
 std::string LedDriver::SelectFileNameDialog()
@@ -547,68 +556,86 @@ std::string LedDriver::SelectFileNameDialog()
 	return filenameUtf8;
 }
 
-std::string LedDriver::SaveDataToFile()
+void LedDriver::SaveManualDataToFile()
 {
-	//std::fstream outputManual;
-	//outputManual.open(saveFileName.c_str(), std::ios::out | std::ios::binary);
-	//if (!outputManual)	{
-
-	//}
-	//for (size_t i = 0; i < sPage.size(); i++){
-	//	char c;
-	//	outputManual.write((char*)&sPage[i].fTime, sizeof(sPage[i].fTime));
-	//	//outputManual << sPage[i].fTime;
-	//	
-	//	if (sPage[i].bGradientNone2Fill)
-	//		c = 0x01;
-	//	if (sPage[i].bGradientFill2None)
-	//		c = 0x02;
-	//	else
-	//		c = 0x00;
-	//	outputManual.write((char*)&c, sizeof(char));
-
-	//	std::stack<LedInt2> out_index = index_stack;
-	//	while (!out_index.empty()) {
-	//		LedInt2 lit = out_index.top();
-	//		outputManual.write((char*)&sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]], sizeof(int));
-	//		//outputManual << sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]];
-	//		out_index.pop();
-	//	}
-	//	
-	//}
-	//outputManual.close();
 	FILE *outputManual;
 	outputManual = fopen(saveFileName.c_str(), "wb");
-	char c = '\0';
+	char mode = 'a';
 	int mssecond = 0;
-	char *light_data = (char*)malloc(sizeof(char)*vertex_area_size[0] * vertex_area_size[1]);
+	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
+	char *lightData = (char*)malloc(sizeof(char)*vertex_area_size[0] * vertex_area_size[1]);
+
+	//模式标志
+	fwrite(&mode, sizeof(char), 1, outputManual);
 	for (size_t i = 0; i < sPage.size(); i++){
 		mssecond = (int)(sPage[i].fTime * 1000.0f);
-		fwrite(&mssecond, sizeof(mssecond), 1, outputManual);
+		//时间
+		fwrite(&mssecond, sizeof(int), 1, outputManual);
 		
 		if (sPage[i].bGradientNone2Fill)
-			c = 0x01;
+			mode = 0x01;
 		else if (sPage[i].bGradientFill2None)
-			c = 0x02;
+			mode = 0x02;
 		else
-			c = 0x00;
-		
-		fwrite(&c, sizeof(c), 1, outputManual);
+			mode = 0x00;
+		//渐变
+		fwrite(&mode, sizeof(char), 1, outputManual);
+		//数据量
+		fwrite(&dataBits, sizeof(int), 1, outputManual);
 
 		std::stack<LedInt2> out_index = index_stack;
-		
-		//light_data = (char*)malloc(sizeof(char)*index_stack.size());
 		for (int j = 0; !out_index.empty(); j++) {
 			LedInt2 lit = out_index.top();
-			light_data[j] = (char)sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]];
+			lightData[j] = (char)sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]];
 			
 			out_index.pop();
 		}
-		fwrite(light_data, sizeof(char), vertex_area_size[0]*vertex_area_size[1], outputManual);
+		//数据
+		fwrite(lightData, sizeof(char), sizeof(lightData)/sizeof(char), outputManual);
 	}
-		free(light_data);
+	free(lightData);
 	fclose(outputManual);
-	return saveFileName;
+}
+
+void LedDriver::SaveVideoDataToFile()
+{
+	FILE *outputVideo;
+	outputVideo = fopen(saveFileName.c_str(), "wb");
+
+	char mode = 'b';//video
+	int videoFrameRate = (int)testVideo.GetFrameTime();
+	int videoFrameCount = testVideo.GetFrameCount();
+	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
+	char *lightData;
+	lightData = (char*)malloc(sizeof(char)*vertex_area_size[0] * vertex_area_size[1]);
+
+	std::stack<LedInt2> out_index = index_stack;
+	std::list<LedInt2> index_list;
+	while (!index_stack.empty()) {
+		
+		index_list.push_back(index_stack.top());
+		index_stack.pop();
+	}
+
+	fwrite(&mode, sizeof(char), 1, outputVideo);
+	fwrite(&videoFrameRate, sizeof(int), 1, outputVideo);
+	fwrite(&videoFrameCount, sizeof(int), 1, outputVideo);
+	
+	for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
+		fwrite(&dataBits, sizeof(int), 1, outputVideo);
+
+		memset(lightData, 0, vertex_area_size[0] * vertex_area_size[1]);
+		for (auto liter = testVideo.m_videoPrimitiveData[i].begin(); liter != testVideo.m_videoPrimitiveData[i].end(); liter++) {
+			//LedInt2 tmplint = *liter;
+			int dirc = std::distance(std::begin(index_list), std::find(index_list.begin(), index_list.end(), *liter));
+			lightData[dirc] = 1;
+		}
+
+		fwrite(lightData, sizeof(char), vertex_area_size[0] * vertex_area_size[1], outputVideo);
+	}
+
+	free(lightData);
+	fclose(outputVideo);
 }
 
 

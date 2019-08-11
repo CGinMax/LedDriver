@@ -5,5 +5,7 @@ struct LedInt2 {
 	LedInt2(int _x, int _y) { x = _x; y = _y; }
 	//int  operator[] (size_t idx) const { assert(idx <= 1); return (&x)[idx]; }
 	//int& operator[] (size_t idx) { assert(idx <= 1); return (&x)[idx]; }
-
+	bool operator == (const LedInt2 tli) {
+		return ((x == tli.x) && (y == tli.y));
+	}
 };

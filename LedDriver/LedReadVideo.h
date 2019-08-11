@@ -13,21 +13,23 @@ public:
 	LedReadVideo();
 	~LedReadVideo();
 
-	void Init(std::string initFile, int area[2]);
-	void ResizeFrameThreshold(int frameWidth, int frameHeight);
+	void Init(int area[2]);
+	void ResizeFrameThreshold(cv::Mat frameImage, int frameWidth, int frameHeight);
 	std::deque<cv::Mat> CutFrameImage(cv::Mat tmpFrame, int nCol, int nRow);
 	std::list<LedInt2> MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, int nRow);
-	std::list<cv::Mat> GetFrameList();
+	void SetVideoFileName(std::string sFilename);
+	std::string GetVideoFileName();
 	double GetFrameTime();
+	int GetFrameCount();
 
 public:
-	std::list<cv::Mat> videoFrameList;
-
+	std::vector<std::list<LedInt2>> m_videoPrimitiveData;
 private:
 	std::string m_fileName;
 	cv::VideoCapture m_video;
-	cv::Mat m_videoFrame;
-	std::list<LedInt2> m_vCoordinate;
+	
+	std::list<cv::Mat> m_videoFrameList;
 	double m_frameTime;
+	int m_frameCount;
 };
 

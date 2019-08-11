@@ -32,7 +32,8 @@ public:
 	void MouseClickDraw(int pageindex);
 	void InitVideo();
 	std::string SelectFileNameDialog();
-	std::string SaveDataToFile();
+	void SaveManualDataToFile();
+	void SaveVideoDataToFile();
 	//std::vector<int> central_points_pos;
 
 private:
@@ -55,11 +56,9 @@ private:
 	size_t nIntervalNum;
 	int nPageCount;
 	int nCurrentMode;
-
-	std::string videoFile;
 	//
 	LedReadVideo testVideo;
-	std::list<cv::Mat>::iterator frameiter;
+	
 
 	std::string saveFileName;
 	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
