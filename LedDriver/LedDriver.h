@@ -58,9 +58,9 @@ private:
 	int nCurrentMode;
 	//
 	LedReadVideo testVideo;
-	
-
 	std::string saveFileName;
+
+	void OpenSerialPort();
 	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
 	void RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
 	std::stack<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection);

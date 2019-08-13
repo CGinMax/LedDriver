@@ -23,7 +23,7 @@ void LedWindow::Init()
 	}
 
 	/*ÅäÖÃGLFW*/
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	/*´´½¨´°¿Ú*/
 	m_pWindow = glfwCreateWindow(this->m_iWidth, this->m_iHight, this->m_title_name, NULL, NULL);

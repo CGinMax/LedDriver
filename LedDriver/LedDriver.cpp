@@ -383,57 +383,57 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			ImGui::Indent(20.0f);
 			ImGui::Separator();
 			//多个区间页
-			if (ImGui::BeginTabBar("autoTabBar", ImGuiTabBarFlags_None)) {
-				for (size_t i = 0; i < sPage.size(); i++) {
-					if (!sPage[i].bOpen) {
-						std::vector<InstancePageData>::iterator tIter = sPage.begin() + i;
-						sPage.erase(tIter); continue;
-					}
-
-					ImGuiTabItemFlags tiflag = (sPage[i].bModify ? ImGuiTabItemFlags_UnsavedDocument : 0);
-					if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
-						ImGui::Checkbox(u8"选点", &(sPage[i].bCheckMouse)); ImGui::SameLine();
-						//ImGui::CheckboxFlags()
-						if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill))) {
-							sPage[i].bGradientFill2None = false;
-							sPage[i].bModify = true;
-						}
-						ImGui::SameLine();
-						if (ImGui::Checkbox(u8"渐变:亮到暗", &(sPage[i].bGradientFill2None))) {
-							sPage[i].bGradientNone2Fill = false;
-							sPage[i].bModify = true;
-						}
-						
-						if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime))) {
-							sPage[i].bModify = true;
-						}
-						if (ImGui::Button(u8"确定")) {
-							if (!sPage[i].vEffectPoints.empty())
-								sPage[i].vEffectPoints.clear();
-
-							/* 获得值为1的点二维坐标*/
-							std::vector<int>::iterator effIter = std::find_if(sPage[i].vnCanvas.begin(), sPage[i].vnCanvas.end(), [](int v) {return (v != 0); });
-							while (effIter != sPage[i].vnCanvas.end())
-							{
-								int dirc = std::distance(sPage[i].vnCanvas.begin(), effIter);
-								sPage[i].vEffectPoints.push_back(LedInt2(dirc%vertex_area_size[0], dirc / vertex_area_size[0]));
-								effIter = std::find_if(effIter + 1, sPage[i].vnCanvas.end(), [](int v) {return (v != 0); });
-							}
-							sPage[i].bModify = false;
-						}
-
-						if (!is_start_play)
-							sPage[i].DisplayCanvas(firstx, firsty, draw_area_size, dl);
-						ImGui::EndTabItem();
-					}
-					if (sPage[i].bCheckMouse) {
-						sPage[i].bModify = true;
-						ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
-						MouseClickDraw(i);
-					}
+			ImGui::BeginTabBar("autoTabBar", ImGuiTabBarFlags_None);
+			for (size_t i = 0; i < sPage.size(); i++) {
+				if (!sPage[i].bOpen) {
+					std::vector<InstancePageData>::iterator tIter = sPage.begin() + i;
+					sPage.erase(tIter); continue;
 				}
-				ImGui::EndTabBar();
+
+				ImGuiTabItemFlags tiflag = (sPage[i].bModify ? ImGuiTabItemFlags_UnsavedDocument : 0);
+				if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
+					ImGui::Checkbox(u8"选点", &(sPage[i].bCheckMouse)); ImGui::SameLine();
+					//ImGui::CheckboxFlags()
+					if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill))) {
+						sPage[i].bGradientFill2None = false;
+						sPage[i].bModify = true;
+					}
+					ImGui::SameLine();
+					if (ImGui::Checkbox(u8"渐变:亮到暗", &(sPage[i].bGradientFill2None))) {
+						sPage[i].bGradientNone2Fill = false;
+						sPage[i].bModify = true;
+					}
+
+					if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime))) {
+						sPage[i].bModify = true;
+					}
+					if (ImGui::Button(u8"确定")) {
+						if (!sPage[i].vEffectPoints.empty())
+							sPage[i].vEffectPoints.clear();
+
+						/* 获得值为1的点二维坐标*/
+						std::vector<int>::iterator effIter = std::find_if(sPage[i].vnCanvas.begin(), sPage[i].vnCanvas.end(), [](int v) {return (v != 0); });
+						while (effIter != sPage[i].vnCanvas.end())
+						{
+							int dirc = std::distance(sPage[i].vnCanvas.begin(), effIter);
+							sPage[i].vEffectPoints.push_back(LedInt2(dirc%vertex_area_size[0], dirc / vertex_area_size[0]));
+							effIter = std::find_if(effIter + 1, sPage[i].vnCanvas.end(), [](int v) {return (v != 0); });
+						}
+						sPage[i].bModify = false;
+					}
+
+					if (!is_start_play)
+						sPage[i].DisplayCanvas(firstx, firsty, draw_area_size, dl);
+					ImGui::EndTabItem();
+				}
+				if (sPage[i].bCheckMouse) {
+					sPage[i].bModify = true;
+					ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+					MouseClickDraw(i);
+				}
 			}
+			ImGui::EndTabBar();
+			
 			ImGui::Separator();
 			ImGui::Unindent(20.0f);
 
@@ -451,18 +451,19 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				_beginthread(ThreadSaveManual, 0, (void*)this);
 				//SaveDataToFile();
 			} 
+			ImGui::SameLine();
+			if (ImGui::Button(u8"打开串口")) {
+				OpenSerialPort();
+			}
 			
 			break;
 		case 1:
 			if (ImGui::Button(u8"导入")) {
 				testVideo.SetVideoFileName(SelectFileNameDialog());
-				//videoFile = std::string("C:\\Users\\CGinMax\\Desktop\\ledimage\\test.mp4");
-				//初始化图片
 				_beginthread(ThreadInitVideo, 0, (void*)this);
-				//testVideo.Init(videoFile, vertex_area_size);
 			}
 			ImGui::SameLine();
-			ImGui::Text(testVideo.GetVideoFileName().c_str());
+			testVideo.m_isInit ? ImGui::Text(testVideo.GetVideoFileName().c_str()) : ImGui::Text(" ");
 
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
@@ -477,7 +478,9 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				_beginthread(ThreadSaveVideo, 0, (void*)this);
 			}
 			ImGui::SameLine();
-			ImGui::Button(u8"打开串口");
+			if (ImGui::Button(u8"打开串口")) {
+				OpenSerialPort();
+			}
 			break;
 		}
 
@@ -560,13 +563,13 @@ void LedDriver::SaveManualDataToFile()
 {
 	FILE *outputManual;
 	outputManual = fopen(saveFileName.c_str(), "wb");
-	char mode = 'a';
+	unsigned char mode = 'a';
 	int mssecond = 0;
 	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
-	char *lightData = (char*)malloc(sizeof(char)*vertex_area_size[0] * vertex_area_size[1]);
+	unsigned char *lightData = (unsigned char*)malloc(sizeof(unsigned char)*vertex_area_size[0] * vertex_area_size[1]);
 
 	//模式标志
-	fwrite(&mode, sizeof(char), 1, outputManual);
+	fwrite(&mode, sizeof(unsigned char), 1, outputManual);
 	for (size_t i = 0; i < sPage.size(); i++){
 		mssecond = (int)(sPage[i].fTime * 1000.0f);
 		//时间
@@ -579,19 +582,19 @@ void LedDriver::SaveManualDataToFile()
 		else
 			mode = 0x00;
 		//渐变
-		fwrite(&mode, sizeof(char), 1, outputManual);
+		fwrite(&mode, sizeof(unsigned char), 1, outputManual);
 		//数据量
 		fwrite(&dataBits, sizeof(int), 1, outputManual);
 
 		std::stack<LedInt2> out_index = index_stack;
 		for (int j = 0; !out_index.empty(); j++) {
 			LedInt2 lit = out_index.top();
-			lightData[j] = (char)sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]];
+			lightData[j] = (unsigned char)(sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]]==0?0x00:0xFF);
 			
 			out_index.pop();
 		}
 		//数据
-		fwrite(lightData, sizeof(char), sizeof(lightData)/sizeof(char), outputManual);
+		fwrite(lightData, sizeof(unsigned char), sizeof(lightData)/sizeof(unsigned char), outputManual);
 	}
 	free(lightData);
 	fclose(outputManual);
@@ -602,12 +605,12 @@ void LedDriver::SaveVideoDataToFile()
 	FILE *outputVideo;
 	outputVideo = fopen(saveFileName.c_str(), "wb");
 
-	char mode = 'b';//video
+	unsigned char mode = 'b';//video
 	int videoFrameRate = (int)testVideo.GetFrameTime();
 	int videoFrameCount = testVideo.GetFrameCount();
 	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
-	char *lightData;
-	lightData = (char*)malloc(sizeof(char)*vertex_area_size[0] * vertex_area_size[1]);
+	unsigned char *lightData;
+	lightData = (unsigned char*)malloc(sizeof(unsigned char)*vertex_area_size[0] * vertex_area_size[1]);
 
 	std::stack<LedInt2> out_index = index_stack;
 	std::list<LedInt2> index_list;
@@ -617,7 +620,7 @@ void LedDriver::SaveVideoDataToFile()
 		index_stack.pop();
 	}
 
-	fwrite(&mode, sizeof(char), 1, outputVideo);
+	fwrite(&mode, sizeof(unsigned char), 1, outputVideo);
 	fwrite(&videoFrameRate, sizeof(int), 1, outputVideo);
 	fwrite(&videoFrameCount, sizeof(int), 1, outputVideo);
 	
@@ -628,10 +631,10 @@ void LedDriver::SaveVideoDataToFile()
 		for (auto liter = testVideo.m_videoPrimitiveData[i].begin(); liter != testVideo.m_videoPrimitiveData[i].end(); liter++) {
 			//LedInt2 tmplint = *liter;
 			int dirc = std::distance(std::begin(index_list), std::find(index_list.begin(), index_list.end(), *liter));
-			lightData[dirc] = 1;
+			lightData[dirc] = 0xFF;
 		}
 
-		fwrite(lightData, sizeof(char), vertex_area_size[0] * vertex_area_size[1], outputVideo);
+		fwrite(lightData, sizeof(unsigned char), vertex_area_size[0] * vertex_area_size[1], outputVideo);
 	}
 
 	free(lightData);
@@ -639,6 +642,19 @@ void LedDriver::SaveVideoDataToFile()
 }
 
 
+
+void LedDriver::OpenSerialPort()
+{
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	/*si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = TRUE;*/
+	::CreateProcess(TEXT("./LedSerialTool/LedSerialTool.exe"), NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+}
 
 /* 左右方向移动*/
 void LedDriver::RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack)

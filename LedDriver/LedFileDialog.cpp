@@ -20,7 +20,7 @@ std::string LedFileDialog::SelectFileNameDialog()
 	OPENFILENAME ofn = { 0 };
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = FindWindow(NULL, TEXT("Led Driver"));
-	ofn.lpstrFilter = TEXT("视频文件(*.avi,*.mp4,*.wmv)\0*.avi;*.mp4;*.wmv\0所有文件\0*.*\0\0");
+	ofn.lpstrFilter = TEXT("视频文件(*.avi,*.mp4,*.wmv,*mpg)\0*.avi;*.mp4;*.wmv;*.mpg\0所有文件\0*.*\0\0");
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFile = Filename;//接收返回的文件名，注意第一个字符需要为NULL
 	ofn.nMaxFile = sizeof(Filename);//缓冲区长度

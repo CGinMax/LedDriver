@@ -5,6 +5,8 @@ using namespace cv;
 LedReadVideo::LedReadVideo()
 {
 	m_frameTime = 0.0;
+	m_frameCount = 0;
+	m_isInit = false;
 }
 
 
@@ -15,6 +17,7 @@ LedReadVideo::~LedReadVideo()
 
 void LedReadVideo::Init(int area[2])
 {
+	m_isInit = false;
 	if (!m_videoFrameList.empty()) {
 		m_videoFrameList.clear();
 		m_videoPrimitiveData.clear();
@@ -35,6 +38,7 @@ void LedReadVideo::Init(int area[2])
 		frameiter++;
 	}
 	m_videoPrimitiveData.shrink_to_fit();
+	m_isInit = true;
 }
 
 void LedReadVideo::ResizeFrameThreshold(cv::Mat frameImage, int frameWidth, int frameHeight)

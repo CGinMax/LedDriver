@@ -24,10 +24,10 @@ public:
 
 public:
 	std::vector<std::list<LedInt2>> m_videoPrimitiveData;
+	bool m_isInit;
 private:
 	std::string m_fileName;
 	cv::VideoCapture m_video;
-	
 	std::list<cv::Mat> m_videoFrameList;
 	double m_frameTime;
 	int m_frameCount;
