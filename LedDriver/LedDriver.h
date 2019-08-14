@@ -37,7 +37,7 @@ public:
 	//std::vector<int> central_points_pos;
 
 private:
-	const float draw_area_size = 16.0f;
+	float draw_area_size;
 	float firstx;
 	float firsty;
 	int vertex_area_size[2];
@@ -59,6 +59,9 @@ private:
 	//
 	LedReadVideo testVideo;
 	std::string saveFileName;
+
+	size_t frameIndex;
+	double fNowTime;
 
 	void OpenSerialPort();
 	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);

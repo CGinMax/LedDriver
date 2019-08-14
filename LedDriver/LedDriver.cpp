@@ -80,6 +80,7 @@ const ImU32 circle_col = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 LedDriver::LedDriver()
 {
+	draw_area_size = 16.0f;
 	vertex_area_size[0] = 0;
 	vertex_area_size[1] = 0;
 	is_init_open = true;
@@ -145,12 +146,16 @@ void LedDriver::Draw()
 	}
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.KeysDown[341]) {
+		if (io.MouseWheel == 1) draw_area_size += 3.0f; else if(io.MouseWheel == -1) draw_area_size -= 3.0f;
+	}
 	
 	//ImGui::SetNextWindowSize(ImVec2(1280, 710));
 	ImGui::Begin(u8"显示窗口", false);
 	ImDrawList *draw_list = ImGui::GetWindowDrawList();
-	ImGui::Text(u8"显示区域");
-	ImGui::Text("fresh on time:%.3fms", 1000.0f / ImGui::GetIO().Framerate);
+	ImGui::Text(u8"显示区域"); ImGui::SameLine();
+	ImGui::Text("当前FPS:%.3f", ImGui::GetIO().Framerate);
 	/* Text下面的光标位置*/
 	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 	/* 设置第一个点的x，y*/
@@ -240,8 +245,8 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
-	static double fNowTime = ImGui::GetTime();
-	static size_t frameIndex = 0;
+	
+	
 	if (frameIndex < testVideo.m_videoPrimitiveData.size()){
 		std::list<LedInt2> vdrawImage = testVideo.m_videoPrimitiveData[frameIndex];
 		
@@ -404,7 +409,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 						sPage[i].bModify = true;
 					}
 
-					if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime))) {
+					if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime), 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal)) {
 						sPage[i].bModify = true;
 					}
 					if (ImGui::Button(u8"确定")) {
@@ -449,7 +454,6 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			if (ImGui::Button(u8"保存")) {
 				saveFileName = LedFileDialog::OpenSaveFileDialog();
 				_beginthread(ThreadSaveManual, 0, (void*)this);
-				//SaveDataToFile();
 			} 
 			ImGui::SameLine();
 			if (ImGui::Button(u8"打开串口")) {
@@ -467,7 +471,8 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
-				
+				fNowTime = ImGui::GetTime();
+				frameIndex = 0;
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(u8"关闭演示"))
@@ -564,12 +569,19 @@ void LedDriver::SaveManualDataToFile()
 	FILE *outputManual;
 	outputManual = fopen(saveFileName.c_str(), "wb");
 	unsigned char mode = 'a';
-	int mssecond = 0;
+	int frameCounter = (int)sPage.size();
 	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
+	int mssecond = 0xFFFF;
 	unsigned char *lightData = (unsigned char*)malloc(sizeof(unsigned char)*vertex_area_size[0] * vertex_area_size[1]);
 
 	//模式标志
 	fwrite(&mode, sizeof(unsigned char), 1, outputManual);
+	//帧数
+	fwrite(&frameCounter, sizeof(int), 1, outputManual);
+	//数据量
+	fwrite(&dataBits, sizeof(int), 1, outputManual);
+	//时间
+	fwrite(&mssecond, sizeof(int), 1, outputManual);
 	for (size_t i = 0; i < sPage.size(); i++){
 		mssecond = (int)(sPage[i].fTime * 1000.0f);
 		//时间
@@ -583,9 +595,7 @@ void LedDriver::SaveManualDataToFile()
 			mode = 0x00;
 		//渐变
 		fwrite(&mode, sizeof(unsigned char), 1, outputManual);
-		//数据量
-		fwrite(&dataBits, sizeof(int), 1, outputManual);
-
+		
 		std::stack<LedInt2> out_index = index_stack;
 		for (int j = 0; !out_index.empty(); j++) {
 			LedInt2 lit = out_index.top();
@@ -621,8 +631,8 @@ void LedDriver::SaveVideoDataToFile()
 	}
 
 	fwrite(&mode, sizeof(unsigned char), 1, outputVideo);
-	fwrite(&videoFrameRate, sizeof(int), 1, outputVideo);
 	fwrite(&videoFrameCount, sizeof(int), 1, outputVideo);
+	fwrite(&videoFrameRate, sizeof(int), 1, outputVideo);
 	
 	for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
 		fwrite(&dataBits, sizeof(int), 1, outputVideo);
