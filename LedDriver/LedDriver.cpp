@@ -24,7 +24,6 @@ void __cdecl ThreadInitVideo(void *param)
 void __cdecl ThreadSaveManual(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	//pld->SaveManualDataToFile();
 	pld->SaveDataToFile('a', pld->GetPageSize(), pld->GetVertexArea(), 0xFFFF);
 	_endthread();
 }
@@ -32,7 +31,6 @@ void __cdecl ThreadSaveManual(void *param)
 void __cdecl ThreadSaveVideo(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	//pld->SaveVideoDataToFile();
 	pld->SaveDataToFile('b', pld->GetVideo().GetFrameCount(), pld->GetVertexArea(), (int)pld->GetVideo().GetFrameTime());
 	_endthread();
 }
@@ -641,92 +639,6 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	fclose(out_to_file);
 }
 
-void LedDriver::SaveManualDataToFile()
-{
-	FILE *outputManual;
-	outputManual = fopen(saveFileName.c_str(), "wb");
-	unsigned char mode = 'a';
-	int frameCounter = (int)sPage.size();
-	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
-	int mssecond = 0xFFFF;
-	unsigned char *lightData = (unsigned char*)malloc(sizeof(unsigned char)*vertex_area_size[0] * vertex_area_size[1]);
-
-	//模式标志
-	fwrite(&mode, sizeof(unsigned char), 1, outputManual);
-	//帧数
-	fwrite(&frameCounter, sizeof(int), 1, outputManual);
-	//数据量
-	fwrite(&dataBits, sizeof(int), 1, outputManual);
-	//时间
-	fwrite(&mssecond, sizeof(int), 1, outputManual);
-	for (size_t i = 0; i < sPage.size(); i++){
-		mssecond = (int)(sPage[i].fTime * 1000.0f);
-		//时间
-		fwrite(&mssecond, sizeof(int), 1, outputManual);
-		
-		if (sPage[i].bGradientNone2Fill)
-			mode = 0x01;
-		else if (sPage[i].bGradientFill2None)
-			mode = 0x02;
-		else
-			mode = 0x00;
-		//渐变
-		fwrite(&mode, sizeof(unsigned char), 1, outputManual);
-		
-		std::stack<LedInt2> out_index = index_stack;
-		for (int j = 0; !out_index.empty(); j++) {
-			LedInt2 lit = out_index.top();
-			lightData[j] = (unsigned char)(sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]]==0?0x00:0xFF);
-			
-			out_index.pop();
-		}
-		//数据
-		fwrite(lightData, sizeof(unsigned char), sizeof(lightData)/sizeof(unsigned char), outputManual);
-	}
-	free(lightData);
-	fclose(outputManual);
-}
-
-void LedDriver::SaveVideoDataToFile()
-{
-	FILE *outputVideo;
-	outputVideo = fopen(saveFileName.c_str(), "wb");
-
-	unsigned char mode = 'b';//video
-	int videoFrameRate = (int)testVideo.GetFrameTime();
-	int videoFrameCount = testVideo.GetFrameCount();
-	int dataBits = vertex_area_size[0] * vertex_area_size[1] * 8;
-	unsigned char *lightData;
-	lightData = (unsigned char*)malloc(sizeof(unsigned char)*vertex_area_size[0] * vertex_area_size[1]);
-
-	std::stack<LedInt2> out_index = index_stack;
-	std::list<LedInt2> index_list;
-	while (!index_stack.empty()) {
-		
-		index_list.push_back(index_stack.top());
-		index_stack.pop();
-	}
-
-	fwrite(&mode, sizeof(unsigned char), 1, outputVideo);
-	fwrite(&videoFrameCount, sizeof(int), 1, outputVideo);
-	fwrite(&videoFrameRate, sizeof(int), 1, outputVideo);
-	
-	for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
-		fwrite(&dataBits, sizeof(int), 1, outputVideo);
-
-		memset(lightData, 0, vertex_area_size[0] * vertex_area_size[1]);
-		for (auto liter = testVideo.m_videoPrimitiveData[i].begin(); liter != testVideo.m_videoPrimitiveData[i].end(); liter++) {
-			//LedInt2 tmplint = *liter;
-			int dirc = std::distance(std::begin(index_list), std::find(index_list.begin(), index_list.end(), *liter));
-			lightData[dirc] = 0xFF;
-		}
-
-		fwrite(lightData, sizeof(unsigned char), vertex_area_size[0] * vertex_area_size[1], outputVideo);
-	}
-
-	free(lightData);
-	fclose(outputVideo);
-}
 
 inline int LedDriver::GetPageSize()
 {

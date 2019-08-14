@@ -33,8 +33,6 @@ public:
 	void InitVideo();
 	std::string SelectFileNameDialog();
 	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
-	void SaveManualDataToFile();
-	void SaveVideoDataToFile();
 	int GetPageSize();
 	int GetVertexArea();
 	LedReadVideo& GetVideo();
