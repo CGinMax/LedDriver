@@ -23,7 +23,7 @@ public:
 	void Draw();
 
 	void Clear();
-	std::stack<LedInt2> GetRoute();
+	std::list<LedInt2> GetRoute();
 	void FirstSetPaintWindow(ImDrawList *draw_list);
 	void SecondSetPaintWindow(ImDrawList *draw_list);
 	void ThridSetPaintWindow(ImDrawList *draw_list);
@@ -52,7 +52,7 @@ private:
 	bool is_start_play;
 	bool is_video_play;
 	
-	std::stack<LedInt2> index_stack;
+	std::list<LedInt2> index_list;
 	std::vector<InstancePageData> sPage;
 	size_t nIntervalNum;
 	int nPageCount;
@@ -65,9 +65,9 @@ private:
 	double fNowTime;
 
 	void OpenSerialPort();
-	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
-	void RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack);
-	std::stack<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection);
-	std::stack<LedInt2> MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection);
+	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list);
+	void RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list);
+	std::list<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection);
+	std::list<LedInt2> MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection);
 };
 

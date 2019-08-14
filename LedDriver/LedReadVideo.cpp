@@ -93,7 +93,7 @@ std::list<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, i
 			frameCoordinate.push_back(LedInt2(i / nCol, i % nCol));*/
 
 		if (cv::countNonZero(vCutedFrame[i]) > 64) {
-			frameCoordinate.push_back(LedInt2(i / nCol, i%nCol));
+			frameCoordinate.push_back(LedInt2(i % nCol, i / nCol));
 		}
 		/* ÷∏’Î±È¿˙*/
 		/*int mc = 0;

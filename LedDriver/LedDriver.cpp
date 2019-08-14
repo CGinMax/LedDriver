@@ -194,7 +194,7 @@ inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 
 	/* 绘制数据线*/
 	if (radio_select != 0) {
-		std::stack<LedInt2> line_points;
+		/*std::stack<LedInt2> line_points;
 		line_points = GetRoute();
 		while (!line_points.empty()) {
 			LedInt2 line1 = line_points.top();
@@ -205,6 +205,16 @@ inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 			if (line_points.size() == 1) {
 				line_points.pop();
 			}
+		}*/
+		std::list<LedInt2> line_points = GetRoute();
+		std::list<LedInt2>::iterator line_iter1 = line_points.begin();
+		std::list<LedInt2>::iterator line_iter2 = line_points.begin();
+		line_iter2++;
+		while (line_iter2 != line_points.end()) {
+			draw_list->AddLine(ImVec2(firstx + (*line_iter1).x*draw_area_size, firsty + (*line_iter1).y*draw_area_size), ImVec2(firstx + (*line_iter2).x*draw_area_size, firsty + (*line_iter2).y*draw_area_size),
+				IM_COL32(90, 250, 250, 255), 2.0f);
+			line_iter1++;
+			line_iter2++;
 		}
 	}
 	
@@ -251,7 +261,7 @@ void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 		std::list<LedInt2> vdrawImage = testVideo.m_videoPrimitiveData[frameIndex];
 		
 		for (auto liter = vdrawImage.begin(); liter != vdrawImage.end(); liter++) {
-			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).y*draw_area_size, firsty + (*liter).x*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).x*draw_area_size, firsty + (*liter).y*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
 		}
 		//fNowTime += (1000.0f / ImGui::GetIO().Framerate);
 		if (ImGui::GetTime() - fNowTime > (testVideo.GetFrameTime() / 1000.0)) {
@@ -352,7 +362,7 @@ void LedDriver::InitControlWindow()
 	ImGui::EndGroup();*/
 
 	if (ImGui::Button(u8"绘制确认")) {
-		index_stack = GetRoute();
+		index_list = GetRoute();
 		is_concern = true;
 		is_init_vertex = false;
 		this->Init();
@@ -496,16 +506,14 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 
 void LedDriver::Clear()
 {
-	while (!index_stack.empty()) {
-		index_stack.pop();
-	}
+	index_list.clear();
 	sPage.clear();
 }
 
 /* 获取路径*/
-std::stack<LedInt2> LedDriver::GetRoute()
+std::list<LedInt2> LedDriver::GetRoute()
 {
-	std::stack<LedInt2> route_points;
+	std::list<LedInt2> route_points;
 	
 	switch (radio_select)
 	{
@@ -600,11 +608,11 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 			//渐变
 			fwrite(&is_grandient, sizeof(unsigned char), 1, out_to_file);
 
-			std::stack<LedInt2> out_index = index_stack;
-			for (int j = 0; !out_index.empty(); j++) {
-				LedInt2 lit = out_index.top();
-				lightData[j] = (unsigned char)(sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]] == 0 ? 0x00 : 0xFF);
-				out_index.pop();
+			auto out_iter = index_list.begin();
+			for (int j = 0; out_iter != index_list.end(); j++) {
+				//LedInt2 lit = out_index.top();
+				lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : 0xFF);
+				out_iter++;
 			}
 			//数据
 			fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
@@ -613,13 +621,7 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 		break;
 	//视频模式
 	case 'b':
-		std::stack<LedInt2> out_index = index_stack;
-		std::list<LedInt2> index_list;
-		while (!index_stack.empty()) {
-
-			index_list.push_back(index_stack.top());
-			index_stack.pop();
-		}
+		
 		//遍历每一帧画面
 		for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
 
@@ -627,7 +629,7 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 			//遍历每一个点，TODO:BinarySearch
 			for (auto liter = testVideo.m_videoPrimitiveData[i].begin(); liter != testVideo.m_videoPrimitiveData[i].end(); liter++) {
 				
-				int dirc = std::distance(std::begin(index_list), std::find(index_list.begin(), index_list.end(), *liter));
+				int dirc = std::distance(index_list.begin(), std::find(index_list.begin(), index_list.end(), *liter));
 				lightData[dirc] = 0xFF;
 			}
 
@@ -672,93 +674,93 @@ void LedDriver::OpenSerialPort()
 }
 
 /* 左右方向移动*/
-void LedDriver::RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack)
+void LedDriver::RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list)
 {
 	if (d) {
 		if (x < vertex_area_size[0] - 1) {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			x += 1;
 		}
 		else {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			y += incrse;
 			d = !d;
 		}
 	}
 	else {
 		if (x > 0) {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			x -= 1;
 		}
 		else {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			y += incrse;
 			d = !d;
 		}
 	}
 }
 /* 上下方向移动*/
-void LedDriver::RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::stack<LedInt2> &my_stack)
+void LedDriver::RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list)
 {
 	if (d) {
 		if (y < vertex_area_size[1]-1) {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			y += 1;
 		}
 		else {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			x += incrse;
 			d = !d;
 		}
 	}
 	else {
 		if (y > 0) {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			y -= 1;
 		}
 		else {
-			my_stack.push(LedInt2(x, y));
+			my_list.push_back(LedInt2(x, y));
 			x += incrse;
 			d = !d;
 		}
 	}
 }
 
-std::stack<LedInt2> LedDriver::MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection)
+std::list<LedInt2> LedDriver::MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection)
 {
 	ImDrawList *draw_start = ImGui::GetWindowDrawList();
 	draw_start->AddCircleFilled(ImVec2(firstx+xStart*draw_area_size, firsty+yStart*draw_area_size), draw_area_size*0.5f, circle_col);
-	std::stack<LedInt2> tmp_stack;
+	std::list<LedInt2> tmp_list;
 	
-	if (!xStart) {
+	if (xStart == 0) {
 		while (xStart < vertex_area_size[0]) {
-			RouteMoveUpDown(xStart, yStart, isPstDirection, 1, tmp_stack);
+			RouteMoveUpDown(xStart, yStart, isPstDirection, 1, tmp_list);
 		}
 	}
 	else {
 		while (xStart >= 0) {
-			RouteMoveUpDown(xStart, yStart, isPstDirection, -1, tmp_stack);
+			RouteMoveUpDown(xStart, yStart, isPstDirection, -1, tmp_list);
 		}
 	}
-	return tmp_stack;
+	return tmp_list;
 }
 
-std::stack<LedInt2> LedDriver::MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection)
+std::list<LedInt2> LedDriver::MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection)
 {
 	ImDrawList *draw_start = ImGui::GetWindowDrawList();
 	draw_start->AddCircleFilled(ImVec2(firstx + xStart * draw_area_size, firsty + yStart * draw_area_size), draw_area_size*0.5f, circle_col);
-	std::stack<LedInt2> tmp_stack;
+	std::list<LedInt2> tmp_list;
 
 	if (!yStart) {
 		while (yStart < vertex_area_size[1]) {
-			RouteMoveLeftRight(xStart, yStart, isPstDirection, 1, tmp_stack);
+			RouteMoveLeftRight(xStart, yStart, isPstDirection, 1, tmp_list);
 		}
 	}
 	else {
 		while (yStart >= 0) {
-			RouteMoveLeftRight(xStart, yStart, isPstDirection, -1, tmp_stack);
+			RouteMoveLeftRight(xStart, yStart, isPstDirection, -1, tmp_list);
 		}
 	}
-	return tmp_stack;
+	return tmp_list;
 }
 
