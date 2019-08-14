@@ -15,7 +15,8 @@ public:
 	GLFWwindow *GetLedWindow();
 
 private:
-	GLFWwindow *m_pWindow = NULL;
+	GLFWwindow *m_pWindow;
+	GLFWimage m_Image[2];
 	int m_iWidth, m_iHight;
 	const char *m_title_name;
 };

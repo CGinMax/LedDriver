@@ -1,11 +1,14 @@
 #include "LedWindow.h"
-
 #include <exception>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 LedWindow::LedWindow(int width, int hight, const char * title_name)
-	: m_iWidth(width), m_iHight(hight), m_title_name(title_name)
+	: m_pWindow(NULL), m_iWidth(width), m_iHight(hight), m_title_name(title_name)
 {
+	
 	this->Init();
 }
 
@@ -33,6 +36,9 @@ void LedWindow::Init()
 		throw std::exception("Create Window Error");
 	}
 	
+	//int n;
+	//m_Image[0].pixels = stbi_load("C:\\Users\\CGinMax\\Desktop\\ledimage\\homo.jpg", &m_Image[0].width, &m_Image[0].height, &n, 0);
+	//glfwSetWindowIcon(m_pWindow, 1, m_Image);
 	/*еДжцGLFWиообнд*/
 	glfwMakeContextCurrent(m_pWindow);
 

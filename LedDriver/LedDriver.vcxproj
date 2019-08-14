@@ -195,6 +195,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="LedReadPhoto.h" />
     <ClInclude Include="LedReadVideo.h" />
     <ClInclude Include="LedWindow.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

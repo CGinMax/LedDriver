@@ -19,7 +19,7 @@
 #include <gl/GL.h>
 #include <gl/GLU.h>
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
 
 
@@ -39,7 +39,7 @@ static void glfw_error_callback(int error, const char* description)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	glfwSetErrorCallback(glfw_error_callback);
-	
+
 	LedWindow window(1280, 720, "Led Driver");
 	LedDriver driver;
 	
