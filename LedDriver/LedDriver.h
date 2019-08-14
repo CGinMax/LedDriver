@@ -32,9 +32,12 @@ public:
 	void MouseClickDraw(int pageindex);
 	void InitVideo();
 	std::string SelectFileNameDialog();
+	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
 	void SaveManualDataToFile();
 	void SaveVideoDataToFile();
-	//std::vector<int> central_points_pos;
+	int GetPageSize();
+	int GetVertexArea();
+	LedReadVideo& GetVideo();
 
 private:
 	float draw_area_size;

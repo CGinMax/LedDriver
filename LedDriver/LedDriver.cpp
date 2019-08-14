@@ -24,14 +24,16 @@ void __cdecl ThreadInitVideo(void *param)
 void __cdecl ThreadSaveManual(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	pld->SaveManualDataToFile();
+	//pld->SaveManualDataToFile();
+	pld->SaveDataToFile('a', pld->GetPageSize(), pld->GetVertexArea(), 0xFFFF);
 	_endthread();
 }
 
 void __cdecl ThreadSaveVideo(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	pld->SaveVideoDataToFile();
+	//pld->SaveVideoDataToFile();
+	pld->SaveDataToFile('b', pld->GetVideo().GetFrameCount(), pld->GetVertexArea(), (int)pld->GetVideo().GetFrameTime());
 	_endthread();
 }
 
@@ -564,6 +566,81 @@ std::string LedDriver::SelectFileNameDialog()
 	return filenameUtf8;
 }
 
+void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime)
+{
+	FILE *out_to_file;
+	unsigned char *lightData;
+	out_to_file = fopen(saveFileName.c_str(), "wb");
+	//模式标志
+	fwrite(&mod, sizeof(unsigned char), 1, out_to_file);
+	//帧数
+	fwrite(&frameNumber, sizeof(int), 1, out_to_file);
+	//每帧大小
+	fwrite(&frameSize, sizeof(int), 1, out_to_file);//frameSize=vertex_area_size[0]*vertex_area_size[1]
+	//时间
+	fwrite(&frameTime, sizeof(int), 1, out_to_file);
+
+	unsigned char is_grandient = 0x00;
+	lightData = (unsigned char *)malloc(sizeof(unsigned char)*frameSize);
+
+	switch (mod)
+	{
+	//手动模式
+	case 'a': 
+		
+		for (size_t i = 0; i < sPage.size(); i++) {
+			frameTime = (int)(sPage[i].fTime * 1000.0f);
+			//时间
+			fwrite(&frameTime, sizeof(int), 1, out_to_file);
+
+			if (sPage[i].bGradientNone2Fill)
+				is_grandient = 0x01;
+			else if (sPage[i].bGradientFill2None)
+				is_grandient = 0x02;
+			else
+				is_grandient = 0x00;
+			//渐变
+			fwrite(&is_grandient, sizeof(unsigned char), 1, out_to_file);
+
+			std::stack<LedInt2> out_index = index_stack;
+			for (int j = 0; !out_index.empty(); j++) {
+				LedInt2 lit = out_index.top();
+				lightData[j] = (unsigned char)(sPage[i].vnCanvas[lit.x + lit.y*vertex_area_size[0]] == 0 ? 0x00 : 0xFF);
+				out_index.pop();
+			}
+			//数据
+			fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
+		}
+		
+		break;
+	//视频模式
+	case 'b':
+		std::stack<LedInt2> out_index = index_stack;
+		std::list<LedInt2> index_list;
+		while (!index_stack.empty()) {
+
+			index_list.push_back(index_stack.top());
+			index_stack.pop();
+		}
+		//遍历每一帧画面
+		for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
+
+			memset(lightData, 0, frameSize);
+			//遍历每一个点，TODO:BinarySearch
+			for (auto liter = testVideo.m_videoPrimitiveData[i].begin(); liter != testVideo.m_videoPrimitiveData[i].end(); liter++) {
+				
+				int dirc = std::distance(std::begin(index_list), std::find(index_list.begin(), index_list.end(), *liter));
+				lightData[dirc] = 0xFF;
+			}
+
+			fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
+		}
+		break;
+	}
+	free(lightData);
+	fclose(out_to_file);
+}
+
 void LedDriver::SaveManualDataToFile()
 {
 	FILE *outputManual;
@@ -649,6 +726,22 @@ void LedDriver::SaveVideoDataToFile()
 
 	free(lightData);
 	fclose(outputVideo);
+}
+
+inline int LedDriver::GetPageSize()
+{
+	return (int)sPage.size();
+}
+
+inline int LedDriver::GetVertexArea()
+{
+	return vertex_area_size[0]*vertex_area_size[1];
+}
+
+LedReadVideo & LedDriver::GetVideo()
+{
+	// TODO: 在此处插入 return 语句
+	return testVideo;
 }
 
 
