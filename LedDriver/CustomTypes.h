@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 struct LedInt2 {
 	int x, y;
 	LedInt2() { x = y = 0; }

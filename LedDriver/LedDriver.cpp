@@ -7,12 +7,12 @@
 #include <iterator>
 #include <algorithm>
 #include <cstdio>
-#include <windows.h>
+
 #include <process.h>
 #include <exception>
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui.hpp>
-//#include <ShlObj.h>
+//#include <opencv2/opencv.hpp>
+//#include <opencv2/highgui.hpp>
+//CRITICAL_SECTION g_cs;
 
 void __cdecl ThreadInitVideo(void *param)
 {
@@ -24,7 +24,16 @@ void __cdecl ThreadInitVideo(void *param)
 void __cdecl ThreadSaveManual(void *param)
 {
 	LedDriver *pld = (LedDriver*)param;
-	pld->SaveDataToFile('a', pld->GetPageSize(), pld->GetVertexArea(), 0xFFFF);
+	int manual_frame_num = 0;
+	std::vector<InstancePageData> page = pld->GetManualPage();
+	for (auto pageiter = page.begin(); pageiter != page.end(); pageiter++) {
+		if (pageiter->bGradientNone2Fill || pageiter->bGradientFill2None)
+			manual_frame_num += (int)(pageiter->fTime * 1000.0f / 40.0f);
+		else
+			manual_frame_num += 1;
+	}
+	
+	pld->SaveDataToFile('a', manual_frame_num, pld->GetVertexArea(), 0xFFFF);
 	_endthread();
 }
 
@@ -89,16 +98,16 @@ LedDriver::LedDriver()
 	is_init_open = false;
 	is_start_play = false;
 	is_video_play = false;
-	nCurrentMode = 0;
 	radio_select = 0;
 	nPageCount = 0;
 	//this->Init();
+	InitializeCriticalSection(&cs);
 }
 
 
 LedDriver::~LedDriver()
 {
-	
+	DeleteCriticalSection(&cs);
 }
 
 void LedDriver::Init()
@@ -222,32 +231,26 @@ inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 {
 	//遍历每一页的画布
-	if (nIntervalNum < sPage.size()) {
-		double dbNowTime = ImGui::GetTime() - sPage[nIntervalNum].nTickTime;
-		if (dbNowTime < sPage[nIntervalNum].fTime) {
-			std::vector<LedInt2>::iterator playIter = sPage[nIntervalNum].vEffectPoints.begin();
+	double dbNowTime = ImGui::GetTime() - sPage[nIntervalNum].nTickTime;
+	if (dbNowTime < sPage[nIntervalNum].fTime) {
+		std::vector<LedInt2>::iterator playIter = sPage[nIntervalNum].vEffectPoints.begin();
 			
-			//无到有渐变
-			if (sPage[nIntervalNum].bGradientNone2Fill)
-				for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-					draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (dbNowTime / sPage[nIntervalNum].fTime)), 32);
-			//有到无渐变
-			else if (sPage[nIntervalNum].bGradientFill2None)
-				for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-					draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (2-dbNowTime / sPage[nIntervalNum].fTime)), 32);
-			//无渐变
-			else
-				for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-					draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
-		}
-		else {
-			nIntervalNum++;
-			if (nIntervalNum < sPage.size())
-				sPage[nIntervalNum].nTickTime = ImGui::GetTime();
-		}
+		//无到有渐变
+		if (sPage[nIntervalNum].bGradientNone2Fill)
+			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (dbNowTime / sPage[nIntervalNum].fTime)), 32);
+		//有到无渐变
+		else if (sPage[nIntervalNum].bGradientFill2None)
+			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (2-dbNowTime / sPage[nIntervalNum].fTime)), 32);
+		//无渐变
+		else
+			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
 	}
 	else {
-		nIntervalNum = 0;
+		nIntervalNum++;
+		nIntervalNum = nIntervalNum < sPage.size() ? nIntervalNum : 0;
 		sPage[nIntervalNum].nTickTime = ImGui::GetTime();
 	}
 	
@@ -377,6 +380,7 @@ void LedDriver::InitControlWindow()
 
 void LedDriver::ModeSelectWindow(ImDrawList *dl)
 {
+	static int nCurrentMode = 0;
 	//is_set_open = ;
 	if (ImGui::Begin(u8"点阵操作", false))
 	{
@@ -574,6 +578,7 @@ std::string LedDriver::SelectFileNameDialog()
 
 void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime)
 {
+	EnterCriticalSection(&cs);
 	FILE *out_to_file;
 	unsigned char *lightData;
 	out_to_file = fopen(saveFileName.c_str(), "wb");
@@ -586,41 +591,50 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	//时间
 	fwrite(&frameTime, sizeof(int), 1, out_to_file);
 
-	unsigned char is_grandient = 0x00;
 	lightData = (unsigned char *)malloc(sizeof(unsigned char)*frameSize);
 
 	switch (mod)
 	{
 	//手动模式
 	case 'a': 
-		
+
 		for (size_t i = 0; i < sPage.size(); i++) {
-			frameTime = (int)(sPage[i].fTime * 1000.0f);
-			//时间
-			fwrite(&frameTime, sizeof(int), 1, out_to_file);
-
-			if (sPage[i].bGradientNone2Fill)
-				is_grandient = 0x01;
-			else if (sPage[i].bGradientFill2None)
-				is_grandient = 0x02;
-			else
-				is_grandient = 0x00;
-			//渐变
-			fwrite(&is_grandient, sizeof(unsigned char), 1, out_to_file);
-
-			auto out_iter = index_list.begin();
-			for (int j = 0; out_iter != index_list.end(); j++) {
-				lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : 0x88);
-				out_iter++;
+			if (sPage[i].bGradientFill2None || sPage[i].bGradientNone2Fill) {
+				int gradientFPS = (int)(sPage[i].fTime*25.0f);//1000/40
+				unsigned char incre = (unsigned char)(255 / gradientFPS);
+				unsigned char lightcd;
+				lightcd = sPage[i].bGradientFill2None ? 0xFF : 0x05;
+				for (; gradientFPS > 0; gradientFPS--) {
+					frameTime = 40;
+					//时间
+					fwrite(&frameTime, sizeof(int), 1, out_to_file);
+					auto out_iter = index_list.begin();
+					for (int j = 0; out_iter != index_list.end(); j++) {
+						lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : lightcd);
+						out_iter++;
+					}
+					//数据
+					fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
+					sPage[i].bGradientFill2None ? lightcd -= incre : lightcd += incre;
+				}
 			}
-			//数据
-			fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
+			else {
+				frameTime = (int)(sPage[i].fTime * 1000.0f);
+				//时间
+				fwrite(&frameTime, sizeof(int), 1, out_to_file);
+				auto out_iter = index_list.begin();
+				for (int j = 0; out_iter != index_list.end(); j++) {
+					lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : 0xFF);
+					out_iter++;
+				}
+				//数据
+				fwrite(lightData, sizeof(unsigned char), frameSize, out_to_file);
+			}
 		}
 		
 		break;
 	//视频模式
 	case 'b':
-		
 		//遍历每一帧画面
 		for (size_t i = 0; i < testVideo.m_videoPrimitiveData.size(); i++) {
 
@@ -638,12 +652,13 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	}
 	free(lightData);
 	fclose(out_to_file);
+	LeaveCriticalSection(&cs);
 }
 
 
-inline int LedDriver::GetPageSize()
+inline std::vector<InstancePageData> LedDriver::GetManualPage()
 {
-	return (int)sPage.size();
+	return this->sPage;
 }
 
 inline int LedDriver::GetVertexArea()

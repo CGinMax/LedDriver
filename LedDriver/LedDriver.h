@@ -33,7 +33,7 @@ public:
 	void InitVideo();
 	std::string SelectFileNameDialog();
 	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
-	int GetPageSize();
+	std::vector<InstancePageData> GetManualPage();
 	int GetVertexArea();
 	LedReadVideo& GetVideo();
 
@@ -56,13 +56,15 @@ private:
 	std::vector<InstancePageData> sPage;
 	size_t nIntervalNum;
 	int nPageCount;
-	int nCurrentMode;
+	
 	//
 	LedReadVideo testVideo;
 	std::string saveFileName;
 
 	size_t frameIndex;
 	double fNowTime;
+
+	CRITICAL_SECTION cs;
 
 	void OpenSerialPort();
 	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list);

@@ -13,7 +13,7 @@
 
 #include "LedWindow.h"
 #include "LedDriver.h"
-#include <windows.h>
+//#include <windows.h>
 
 #include <GLFW/glfw3.h>
 #include <gl/GL.h>
