@@ -62,7 +62,7 @@ private:
 	std::string saveFileName;
 
 	size_t frameIndex;
-	double fNowTime;
+	double dbNowTime;
 
 	CRITICAL_SECTION cs;
 

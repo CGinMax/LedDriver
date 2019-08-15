@@ -7,12 +7,8 @@
 #include <iterator>
 #include <algorithm>
 #include <cstdio>
-
 #include <process.h>
 #include <exception>
-//#include <opencv2/opencv.hpp>
-//#include <opencv2/highgui.hpp>
-//CRITICAL_SECTION g_cs;
 
 void __cdecl ThreadInitVideo(void *param)
 {
@@ -59,7 +55,6 @@ std::string ToUTF8(const std::string str)
 	memset(utf8_buf, 0, len + 1);
 
 	::WideCharToMultiByte(CP_UTF8, 0, pw_buf, nw_len, utf8_buf, len, NULL, NULL);
-	//AfxGetApp()->GetMainWnd()->m_hWnd;
 	
 	std::string outstr(utf8_buf);
 
@@ -84,8 +79,6 @@ void logfile(std::vector<char> ucharvector)
 	}
 	output.close();
 }
-
-const ImU32 circle_col = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 LedDriver::LedDriver()
 {
@@ -159,8 +152,7 @@ void LedDriver::Draw()
 	if (io.KeysDown[341]) {
 		if (io.MouseWheel == 1) draw_area_size += 3.0f; else if(io.MouseWheel == -1) draw_area_size -= 3.0f;
 	}
-	
-	//ImGui::SetNextWindowSize(ImVec2(1280, 710));
+
 	ImGui::Begin(u8"显示窗口", false);
 	ImDrawList *draw_list = ImGui::GetWindowDrawList();
 	ImGui::Text(u8"显示区域"); ImGui::SameLine();
@@ -197,24 +189,12 @@ inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 	for (int i = 0; i < vertex_area_size[1]; i++) {
 		for (int j = 0; j < vertex_area_size[0]; j++) {
 			draw_list->AddCircle(
-				ImVec2(firstx + j * draw_area_size, firsty + i * draw_area_size), draw_area_size*0.5f, circle_col, 32, 2.0f);
+				ImVec2(firstx + j * draw_area_size, firsty + i * draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE, 32, 2.0f);
 		}
 	}
 
 	/* 绘制数据线*/
 	if (radio_select != 0) {
-		/*std::stack<LedInt2> line_points;
-		line_points = GetRoute();
-		while (!line_points.empty()) {
-			LedInt2 line1 = line_points.top();
-			line_points.pop();
-			LedInt2 line2 = line_points.top();
-			draw_list->AddLine(ImVec2(firstx + line1.x*draw_area_size, firsty + line1.y*draw_area_size), ImVec2(firstx + line2.x*draw_area_size, firsty + line2.y*draw_area_size),
-				IM_COL32(90, 250, 250, 255), 2.0f);
-			if (line_points.size() == 1) {
-				line_points.pop();
-			}
-		}*/
 		std::list<LedInt2> line_points = GetRoute();
 		std::list<LedInt2>::iterator line_iter1 = line_points.begin();
 		std::list<LedInt2>::iterator line_iter2 = line_points.begin();
@@ -231,24 +211,23 @@ inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 {
 	//遍历每一页的画布
-	double dbNowTime = ImGui::GetTime() - sPage[nIntervalNum].nTickTime;
-	if (dbNowTime < sPage[nIntervalNum].fTime) {
-		std::vector<LedInt2>::iterator playIter = sPage[nIntervalNum].vEffectPoints.begin();
-			
-		//无到有渐变
-		if (sPage[nIntervalNum].bGradientNone2Fill)
-			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (dbNowTime / sPage[nIntervalNum].fTime)), 32);
-		//有到无渐变
-		else if (sPage[nIntervalNum].bGradientFill2None)
-			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (2-dbNowTime / sPage[nIntervalNum].fTime)), 32);
-		//无渐变
-		else
-			for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-				draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
-	}
-	else {
+	dbNowTime = ImGui::GetTime() - sPage[nIntervalNum].nTickTime;
+	std::vector<LedInt2>::iterator playIter = sPage[nIntervalNum].vEffectPoints.begin();
+
+	//无到有渐变
+	if (sPage[nIntervalNum].bGradientNone2Fill)
+		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (dbNowTime / sPage[nIntervalNum].fTime)), 32);
+	//有到无渐变
+	else if (sPage[nIntervalNum].bGradientFill2None)
+		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (1 - (dbNowTime>sPage[nIntervalNum].fTime?sPage[nIntervalNum].fTime:dbNowTime) / sPage[nIntervalNum].fTime)), 32);
+	//无渐变
+	else
+		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
+			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE, 32);
+	
+	if (dbNowTime > sPage[nIntervalNum].fTime) {
 		nIntervalNum++;
 		nIntervalNum = nIntervalNum < sPage.size() ? nIntervalNum : 0;
 		sPage[nIntervalNum].nTickTime = ImGui::GetTime();
@@ -258,18 +237,16 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
-	
-	
 	if (frameIndex < testVideo.m_videoPrimitiveData.size()){
 		std::list<LedInt2> vdrawImage = testVideo.m_videoPrimitiveData[frameIndex];
 		
 		for (auto liter = vdrawImage.begin(); liter != vdrawImage.end(); liter++) {
-			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).x*draw_area_size, firsty + (*liter).y*draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+			draw_list->AddCircleFilled(ImVec2(firstx + (*liter).x*draw_area_size, firsty + (*liter).y*draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE, 32);
 		}
 		//fNowTime += (1000.0f / ImGui::GetIO().Framerate);
-		if (ImGui::GetTime() - fNowTime > (testVideo.GetFrameTime() / 1000.0)) {
+		if (ImGui::GetTime() - dbNowTime > (testVideo.GetFrameTime() / 1000.0)) {
 			frameIndex++;
-			fNowTime = ImGui::GetTime();
+			dbNowTime = ImGui::GetTime();
 		}
 	}
 	else {
@@ -447,7 +424,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				}
 				if (sPage[i].bCheckMouse) {
 					sPage[i].bModify = true;
-					ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+					ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), draw_area_size*0.5f, IM_COL32_WHITE, 32);
 					MouseClickDraw(i);
 				}
 			}
@@ -457,8 +434,6 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			ImGui::Unindent(20.0f);
 
 			if (ImGui::Button(u8"演示")) {
-				//TODO:添加安全检查
-
 				//初始化播放的第一个时刻的状态
 				sPage[0].nTickTime = ImGui::GetTime();
 				nIntervalNum = 0;
@@ -485,7 +460,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
-				fNowTime = ImGui::GetTime();
+				dbNowTime = ImGui::GetTime();
 				frameIndex = 0;
 			}
 			ImGui::SameLine();
@@ -655,7 +630,6 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	LeaveCriticalSection(&cs);
 }
 
-
 inline std::vector<InstancePageData> LedDriver::GetManualPage()
 {
 	return this->sPage;
@@ -668,11 +642,8 @@ inline int LedDriver::GetVertexArea()
 
 LedReadVideo & LedDriver::GetVideo()
 {
-	// TODO: 在此处插入 return 语句
 	return testVideo;
 }
-
-
 
 void LedDriver::OpenSerialPort()
 {
@@ -743,7 +714,7 @@ void LedDriver::RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::lis
 std::list<LedInt2> LedDriver::MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection)
 {
 	ImDrawList *draw_start = ImGui::GetWindowDrawList();
-	draw_start->AddCircleFilled(ImVec2(firstx+xStart*draw_area_size, firsty+yStart*draw_area_size), draw_area_size*0.5f, circle_col);
+	draw_start->AddCircleFilled(ImVec2(firstx+xStart*draw_area_size, firsty+yStart*draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE);
 	std::list<LedInt2> tmp_list;
 	
 	if (xStart == 0) {
@@ -762,7 +733,7 @@ std::list<LedInt2> LedDriver::MatrixStartTraverseUpDown(int xStart, int yStart, 
 std::list<LedInt2> LedDriver::MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection)
 {
 	ImDrawList *draw_start = ImGui::GetWindowDrawList();
-	draw_start->AddCircleFilled(ImVec2(firstx + xStart * draw_area_size, firsty + yStart * draw_area_size), draw_area_size*0.5f, circle_col);
+	draw_start->AddCircleFilled(ImVec2(firstx + xStart * draw_area_size, firsty + yStart * draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE);
 	std::list<LedInt2> tmp_list;
 
 	if (!yStart) {
