@@ -610,7 +610,7 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 
 			auto out_iter = index_list.begin();
 			for (int j = 0; out_iter != index_list.end(); j++) {
-				lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : 0xFF);
+				lightData[j] = (unsigned char)(sPage[i].vnCanvas[(*out_iter).x + (*out_iter).y*vertex_area_size[0]] == 0 ? 0x00 : 0x88);
 				out_iter++;
 			}
 			//Êý¾Ý
