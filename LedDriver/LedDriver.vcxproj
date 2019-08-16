@@ -173,6 +173,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="InstancePageData.cpp" />
     <ClCompile Include="LedDriver.cpp" />
     <ClCompile Include="LedFileDialog.cpp" />
+    <ClCompile Include="LedManualLayout.cpp" />
     <ClCompile Include="LedReadPhoto.cpp" />
     <ClCompile Include="LedReadVideo.cpp" />
     <ClCompile Include="LedWindow.cpp" />
@@ -192,6 +193,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="InstancePageData.h" />
     <ClInclude Include="LedDriver.h" />
     <ClInclude Include="LedFileDialog.h" />
+    <ClInclude Include="LedManualLayout.h" />
     <ClInclude Include="LedReadPhoto.h" />
     <ClInclude Include="LedReadVideo.h" />
     <ClInclude Include="LedWindow.h" />

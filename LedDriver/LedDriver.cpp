@@ -94,6 +94,7 @@ LedDriver::LedDriver()
 	radio_select = 0;
 	nPageCount = 0;
 	//this->Init();
+	manualLayout = LedManualLayout::CreateManualLayout();
 	InitializeCriticalSection(&cs);
 }
 
@@ -101,6 +102,7 @@ LedDriver::LedDriver()
 LedDriver::~LedDriver()
 {
 	DeleteCriticalSection(&cs);
+	delete manualLayout;
 }
 
 void LedDriver::Init()
@@ -118,6 +120,19 @@ void LedDriver::Init()
 
 void LedDriver::Draw()
 {
+	/*static bool manual_open = false;
+	ImGui::BeginMainMenuBar();
+	if (ImGui::BeginMenu(u8"文件")) {
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu(u8"窗口")) {
+		ImGui::MenuItem(u8"手工布局", NULL, &manual_open);
+		ImGui::EndMenu();
+	}
+	ImGui::EndMainMenuBar();
+
+	if (manual_open) manualLayout->DrawWindow(&manual_open);*/
+
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(viewport->Pos);
 	ImGui::SetNextWindowSize(viewport->Size);
@@ -153,7 +168,7 @@ void LedDriver::Draw()
 		if (io.MouseWheel == 1) draw_area_size += 3.0f; else if(io.MouseWheel == -1) draw_area_size -= 3.0f;
 	}
 
-	ImGui::Begin(u8"显示窗口", false);
+	ImGui::Begin(u8"显示窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
 	ImDrawList *draw_list = ImGui::GetWindowDrawList();
 	ImGui::Text(u8"显示区域"); ImGui::SameLine();
 	ImGui::Text("当前FPS:%.3f", ImGui::GetIO().Framerate);
@@ -163,8 +178,8 @@ void LedDriver::Draw()
 	firstx = cursorPos.x + draw_area_size * 0.5f + 3.5f;
 	firsty = cursorPos.y + draw_area_size * 0.5f + 3.5f;
 	/* 设置画布的大小，超过屏幕大小会显示滚动条*/
-	ImGui::InvisibleButton("##dummy", ImVec2(cursorPos.x + draw_area_size * vertex_area_size[0], cursorPos.x + draw_area_size * vertex_area_size[1]));
-
+	ImGui::Dummy(ImVec2(draw_area_size * vertex_area_size[0], draw_area_size * vertex_area_size[1]));
+	//draw_list->PushClipRect(cursorPos, ImVec2(cursorPos.x + draw_area_size * vertex_area_size[0], cursorPos.y + draw_area_size * vertex_area_size[1]));
 	if (is_init_vertex)
 		FirstSetPaintWindow(draw_list);
 	
@@ -174,7 +189,7 @@ void LedDriver::Draw()
 	if (is_video_play)
 		ThridSetPaintWindow(draw_list);
 
-	
+	//draw_list->PopClipRect();
 	ImGui::End();//Draw window End
 
 	InitControlWindow();
@@ -183,7 +198,9 @@ void LedDriver::Draw()
 	ImGui::PopStyleVar();
 	
 }
-inline void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
+
+
+void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 {
 	/* 绘制初始画布*/
 	for (int i = 0; i < vertex_area_size[1]; i++) {
@@ -527,14 +544,28 @@ std::list<LedInt2> LedDriver::GetRoute()
 	return route_points;
 }
 
+
+
+//TODO:Fix bug
 void LedDriver::MouseClickDraw(int pageindex)
 {
+	static int cx = 0;
+	static int cy = 0;
 	if (ImGui::IsMouseClicked(0)) {
 		ImVec2 cpoint = ImGui::GetIO().MouseClickedPos[0];
-		int cx = (int)((cpoint.x - firstx + draw_area_size * 0.5f) / draw_area_size);
-		int cy = (int)((cpoint.y - firsty + draw_area_size * 0.5f) / draw_area_size);
+		cx = (int)((cpoint.x - firstx + draw_area_size * 0.5f) / draw_area_size);
+		cy = (int)((cpoint.y - firsty + draw_area_size * 0.5f) / draw_area_size);
 		if (cx < vertex_area_size[0] && cy < vertex_area_size[1])
-			sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] = sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] ? 0 : 1;			//central_points_pos[cy*vertex_area_size[0] + cx] = central_points_pos[cy*vertex_area_size[0] + cx] ? 0 : 1;
+			sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] = sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx] ? 0 : 1;			
+	}
+	
+	if (ImGui::IsMouseDragging(0)) {
+		ImVec2 dragArea = ImGui::GetIO().MousePos;
+		//ImVec2 dragArea = ImVec2(ImGui::GetMouseDragDelta(0).x + cpoint.x, ImGui::GetMouseDragDelta(0).y + cpoint.y);
+		int dragx = (int)((dragArea.x - firstx + draw_area_size * 0.5f) / draw_area_size);
+		int dragy = (int)((dragArea.y - firsty + draw_area_size * 0.5f) / draw_area_size);
+		if (dragx < vertex_area_size[0] && dragy < vertex_area_size[1])
+			sPage[pageindex].vnCanvas[dragy*vertex_area_size[0] + dragx] = sPage[pageindex].vnCanvas[cy*vertex_area_size[0] + cx];
 
 	}
 }
@@ -640,7 +671,7 @@ inline int LedDriver::GetVertexArea()
 	return vertex_area_size[0]*vertex_area_size[1];
 }
 
-LedReadVideo & LedDriver::GetVideo()
+inline LedReadVideo & LedDriver::GetVideo()
 {
 	return testVideo;
 }

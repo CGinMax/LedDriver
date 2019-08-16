@@ -63,6 +63,9 @@
     <ClCompile Include="LedReadVideo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="LedManualLayout.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LedWindow.h">
@@ -114,6 +117,9 @@
       <Filter>External</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LedManualLayout.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

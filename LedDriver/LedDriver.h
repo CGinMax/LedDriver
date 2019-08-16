@@ -10,9 +10,7 @@
 #include "InstancePageData.h"
 #include "LedReadPhoto.h"
 #include "LedReadVideo.h"
-//#include "DrawManage.h"
-
-
+#include "LedManualLayout.h"
 
 class LedDriver
 {
@@ -63,6 +61,8 @@ private:
 
 	size_t frameIndex;
 	double dbNowTime;
+
+	LedManualLayout *manualLayout;
 
 	CRITICAL_SECTION cs;
 
