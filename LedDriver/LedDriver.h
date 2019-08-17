@@ -49,12 +49,15 @@ private:
 	bool is_set_open;
 	bool is_start_play;
 	bool is_video_play;
-	
+
+	bool is_save;
+	bool is_open_serial;
+	int nCurrentMode;
 	std::list<LedInt2> index_list;
 	std::vector<InstancePageData> sPage;
 	size_t nIntervalNum;
 	int nPageCount;
-	
+	int nWhichPage;
 	//
 	LedReadVideo testVideo;
 	std::string saveFileName;

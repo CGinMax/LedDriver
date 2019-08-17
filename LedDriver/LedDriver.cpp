@@ -91,8 +91,12 @@ LedDriver::LedDriver()
 	is_init_open = false;
 	is_start_play = false;
 	is_video_play = false;
+	is_save = false;
+	is_open_serial = false;
 	radio_select = 0;
 	nPageCount = 0;
+	nWhichPage = 0;
+	nCurrentMode = 0;
 	//this->Init();
 	manualLayout = LedManualLayout::CreateManualLayout();
 	InitializeCriticalSection(&cs);
@@ -120,21 +124,35 @@ void LedDriver::Init()
 
 void LedDriver::Draw()
 {
-	/*static bool manual_open = false;
+	static bool manual_open = false;
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu(u8"文件")) {
+		ImGui::MenuItem(u8"保存", NULL, &is_save);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu(u8"窗口")) {
 		ImGui::MenuItem(u8"手工布局", NULL, &manual_open);
+		ImGui::MenuItem(u8"自动布局");
+		ImGui::MenuItem(u8"打开串口", NULL, &is_open_serial);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
 
-	if (manual_open) manualLayout->DrawWindow(&manual_open);*/
+	if (manual_open) manualLayout->DrawWindow(&manual_open);
+	//保存文件
+	if (is_save) { 
+		saveFileName = LedFileDialog::OpenSaveFileDialog(); 
+		if (nCurrentMode == 0)
+			_beginthread(ThreadSaveManual, 0, (void*)this);
+		else 
+			_beginthread(ThreadSaveVideo, 0, (void*)this);
+		is_save = false;
+	}
+	if (is_open_serial) { OpenSerialPort(); is_open_serial = false; } //打开串口
 
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->Pos);
+	
+	ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x,viewport->Pos.y+10.0f));
 	ImGui::SetNextWindowSize(viewport->Size);
 	ImGui::SetNextWindowViewport(viewport->ID);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -171,7 +189,7 @@ void LedDriver::Draw()
 	ImGui::Begin(u8"显示窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
 	ImDrawList *draw_list = ImGui::GetWindowDrawList();
 	ImGui::Text(u8"显示区域"); ImGui::SameLine();
-	ImGui::Text("当前FPS:%.3f", ImGui::GetIO().Framerate);
+	ImGui::Text("FPS:%f", io.Framerate);
 	/* Text下面的光标位置*/
 	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 	/* 设置第一个点的x，y*/
@@ -179,7 +197,8 @@ void LedDriver::Draw()
 	firsty = cursorPos.y + draw_area_size * 0.5f + 3.5f;
 	/* 设置画布的大小，超过屏幕大小会显示滚动条*/
 	ImGui::Dummy(ImVec2(draw_area_size * vertex_area_size[0], draw_area_size * vertex_area_size[1]));
-	//draw_list->PushClipRect(cursorPos, ImVec2(cursorPos.x + draw_area_size * vertex_area_size[0], cursorPos.y + draw_area_size * vertex_area_size[1]));
+	//ImGui::InvisibleButton("dummy btn", ImVec2(1.0f+draw_area_size * vertex_area_size[0], 1.0f+draw_area_size * vertex_area_size[1]));
+	
 	if (is_init_vertex)
 		FirstSetPaintWindow(draw_list);
 	
@@ -189,7 +208,10 @@ void LedDriver::Draw()
 	if (is_video_play)
 		ThridSetPaintWindow(draw_list);
 
-	//draw_list->PopClipRect();
+	if (!is_start_play && !sPage.empty()) {
+		sPage[nWhichPage].DisplayCanvas(firstx, firsty, draw_area_size, draw_list);
+	}
+	
 	ImGui::End();//Draw window End
 
 	InitControlWindow();
@@ -302,61 +324,6 @@ void LedDriver::InitControlWindow()
 	//ImGui::Text(u8"方向选择");
 	const char* items[] = { u8"无", u8"上左纵向", u8"上左横向", u8"下左纵向", u8"下左横向", u8"上右纵向", u8"上右横向", u8"下右纵向", u8"下右横向" };
 	ImGui::Combo(u8"灯布局方向", &radio_select, items, IM_ARRAYSIZE(items));
-	/*ImGui::BeginGroup();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button1", ImVec2(130, 80));
-	ImGui::RadioButton(u8"无", &radio_select, 0);
-	ImGui::EndGroup();
-
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button2", ImVec2(130, 80));
-	ImGui::RadioButton(u8"左上角开始，往下走", &radio_select, 1);
-	ImGui::EndGroup();
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button3", ImVec2(130, 80));
-	ImGui::RadioButton(u8"左上角开始，往右走", &radio_select, 2);
-	ImGui::EndGroup();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button4", ImVec2(130, 80));
-	ImGui::RadioButton(u8"左下角开始，往上走", &radio_select, 3);
-	ImGui::EndGroup();
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button5", ImVec2(130, 80));
-	ImGui::RadioButton(u8"左下角开始，往右走", &radio_select, 4);
-	ImGui::EndGroup();
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button6", ImVec2(130, 80));
-	ImGui::RadioButton(u8"右上角开始，往下走", &radio_select, 5);
-	ImGui::EndGroup();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button7", ImVec2(130, 80));
-	ImGui::RadioButton(u8"右上角开始，往左走", &radio_select, 6);
-	ImGui::EndGroup();
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button8", ImVec2(130, 80));
-	ImGui::RadioButton(u8"右下角开始，往上走", &radio_select, 7);
-	ImGui::EndGroup();
-	ImGui::SameLine();
-
-	ImGui::BeginGroup();
-	ImGui::Button("button9", ImVec2(130, 80));
-	ImGui::RadioButton(u8"右下角开始，往左走", &radio_select, 8);
-	ImGui::EndGroup();
-
-	ImGui::EndGroup();*/
 
 	if (ImGui::Button(u8"绘制确认")) {
 		index_list = GetRoute();
@@ -374,11 +341,10 @@ void LedDriver::InitControlWindow()
 
 void LedDriver::ModeSelectWindow(ImDrawList *dl)
 {
-	static int nCurrentMode = 0;
-	//is_set_open = ;
+	
 	if (ImGui::Begin(u8"点阵操作", false))
 	{
-		//ImGui::TreeNode(u8"手动选择模式");
+		
 		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"手动选择模式\0Video模式\0\0");
 		switch (nCurrentMode)
 		{
@@ -405,6 +371,7 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 
 				ImGuiTabItemFlags tiflag = (sPage[i].bModify ? ImGuiTabItemFlags_UnsavedDocument : 0);
 				if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
+					nWhichPage = i;
 					ImGui::Checkbox(u8"选点", &(sPage[i].bCheckMouse)); ImGui::SameLine();
 					//ImGui::CheckboxFlags()
 					if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill))) {
@@ -435,8 +402,8 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 						sPage[i].bModify = false;
 					}
 
-					if (!is_start_play)
-						sPage[i].DisplayCanvas(firstx, firsty, draw_area_size, dl);
+					//if (!is_start_play)
+					//	sPage[i].DisplayCanvas(firstx, firsty, draw_area_size, dl);
 					ImGui::EndTabItem();
 				}
 				if (sPage[i].bCheckMouse) {
@@ -456,15 +423,9 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				nIntervalNum = 0;
 				is_start_play = true;
 			}
-			ImGui::SameLine(); if (ImGui::Button(u8"关闭演示")) is_start_play = false; ImGui::SameLine();
-			if (ImGui::Button(u8"保存")) {
-				saveFileName = LedFileDialog::OpenSaveFileDialog();
-				_beginthread(ThreadSaveManual, 0, (void*)this);
-			} 
-			ImGui::SameLine();
-			if (ImGui::Button(u8"打开串口")) {
-				OpenSerialPort();
-			}
+			ImGui::SameLine(); 
+			if (ImGui::Button(u8"关闭演示")) is_start_play = false;
+			
 			
 			break;
 		case 1:
@@ -473,8 +434,6 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 				_beginthread(ThreadInitVideo, 0, (void*)this);
 			}
 			ImGui::SameLine();
-			testVideo.m_isInit ? ImGui::Text(testVideo.GetVideoFileName().c_str()) : ImGui::Text(" ");
-
 			if (ImGui::Button(u8"演示播放")) {
 				is_video_play = true;
 				dbNowTime = ImGui::GetTime();
@@ -483,15 +442,8 @@ void LedDriver::ModeSelectWindow(ImDrawList *dl)
 			ImGui::SameLine();
 			if (ImGui::Button(u8"关闭演示"))
 				is_video_play = false;
-			ImGui::SameLine();
-			if (ImGui::Button(u8"保存")) {
-				saveFileName = LedFileDialog::OpenSaveFileDialog();
-				_beginthread(ThreadSaveVideo, 0, (void*)this);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button(u8"打开串口")) {
-				OpenSerialPort();
-			}
+			
+			testVideo.m_isInit ? ImGui::Text(testVideo.GetVideoFileName().c_str()) : ImGui::Text(" ");
 			break;
 		}
 

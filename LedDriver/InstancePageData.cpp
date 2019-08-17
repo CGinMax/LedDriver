@@ -31,11 +31,11 @@ void InstancePageData::DisplayCanvas(float canvas_startx, float canvas_starty, f
 		for (int ncol = 0; ncol < nCanvasSize[0]; ncol++) {
 			if (vnCanvas[nrow*nCanvasSize[0] + ncol] == 0) {
 				canvas_draw_list->AddCircle(ImVec2(canvas_startx + ncol * primitive_size, canvas_starty + nrow * primitive_size),
-					primitive_size*0.5f, IM_COL32(255, 255, 255, 255), 32, 2.0f);
+					primitive_size*0.5f, IM_COL32_WHITE, 32, 2.0f);
 			}
 			else {
 				canvas_draw_list->AddCircleFilled(ImVec2(canvas_startx + ncol * primitive_size, canvas_starty + nrow * primitive_size),
-					primitive_size*0.5f, IM_COL32(255, 255, 255, 255), 32);
+					primitive_size*0.5f, IM_COL32_WHITE, 32);
 			}
 		}
 	}

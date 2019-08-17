@@ -50,7 +50,7 @@ void LedManualLayout::DrawWindow(bool * p_open)
 	ImGui::End();//End LayoutOption
 
 	ImGui::Begin(u8"手工布局窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
-	ImDrawList *draw_list = ImGui::GetWindowDrawList();
+	ImDrawList *man_draw_list = ImGui::GetWindowDrawList();
 	
 	//static ImVector<ImVec2> points;
 
@@ -58,15 +58,15 @@ void LedManualLayout::DrawWindow(bool * p_open)
 	ImVec2 canvas_size = ImGui::GetContentRegionAvail();        // Resize canvas to what's available
 	if (canvas_size.x < 50.0f) canvas_size.x = 50.0f;
 	if (canvas_size.y < 50.0f) canvas_size.y = 50.0f;
-	draw_list->AddRectFilledMultiColor(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(50, 50, 50, 255), IM_COL32(50, 50, 60, 255), IM_COL32(60, 60, 70, 255), IM_COL32(50, 50, 60, 255));
-	draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(255, 255, 255, 255));
+	man_draw_list->AddRectFilledMultiColor(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(50, 50, 50, 255), IM_COL32(50, 50, 60, 255), IM_COL32(60, 60, 70, 255), IM_COL32(50, 50, 60, 255));
+	man_draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(255, 255, 255, 255));
 
-	bool adding_preview = false;
+
 	ImGui::InvisibleButton("canvas", canvas_size);
 	ImVec2 mouse_pos_in_canvas = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
 	if (bAddingLine)
 	{
-		adding_preview = true;
+		
 		//points.push_back(mouse_pos_in_canvas);
 		ivRectPoints[1] = mouse_pos_in_canvas;
 
@@ -75,20 +75,21 @@ void LedManualLayout::DrawWindow(bool * p_open)
 		int rows = (ivRectPoints[1].y - ivRectPoints[0].y) / fLatticeSize;
 		for (int j = 0; j < rows; j++) {
 			for (int i = 0; i < cols; i++) {
-				draw_list->AddCircle(ImVec2(firstcentralpoint.x + i * fLatticeSize, firstcentralpoint.y + j * fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32, 2.0f);
+				man_draw_list->AddCircle(ImVec2(firstcentralpoint.x + i * fLatticeSize, firstcentralpoint.y + j * fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32, 2.0f);
 			}
 		}
 		char textcoord[10];
 		sprintf(textcoord, "(%d,%d)", cols, rows);
-		draw_list->AddText(ImVec2(ImGui::GetIO().MousePos.x + 20.0f, ImGui::GetIO().MousePos.y - 20.0f), IM_COL32_WHITE, textcoord);
+		man_draw_list->AddText(ImVec2(ImGui::GetIO().MousePos.x + 20.0f, ImGui::GetIO().MousePos.y - 20.0f), IM_COL32_WHITE, textcoord);
 
 
 		if (ImGui::IsMouseReleased(0)) {
-			//points.pop_back();
-			//points.pop_back();
+			
 		}
-		if (!ImGui::IsMouseDown(0))
-			bAddingLine = adding_preview = false;
+		if (!ImGui::IsMouseDown(0)) {
+			bAddingLine = false;
+
+		}
 
 	}
 	if (ImGui::IsItemHovered())
@@ -106,7 +107,7 @@ void LedManualLayout::DrawWindow(bool * p_open)
 	//draw_list->PopClipRect();
 	//if (adding_preview)
 	//	points.pop_back();
-	if (bAddingLine) draw_list->AddRect(ImVec2(canvas_pos.x + ivRectPoints[0].x, canvas_pos.y + ivRectPoints[0].y), ImVec2(canvas_pos.x + ivRectPoints[1].x, canvas_pos.y + ivRectPoints[1].y), IM_COL32(255, 255, 0, 255), 0.0f, ImDrawCornerFlags_All, 2.0f);
+	if (bAddingLine) man_draw_list->AddRect(ImVec2(canvas_pos.x + ivRectPoints[0].x, canvas_pos.y + ivRectPoints[0].y), ImVec2(canvas_pos.x + ivRectPoints[1].x, canvas_pos.y + ivRectPoints[1].y), IM_COL32(255, 255, 0, 255), 0.0f, ImDrawCornerFlags_All, 2.0f);
 
 
 
