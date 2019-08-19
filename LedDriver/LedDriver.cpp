@@ -130,9 +130,9 @@ void LedDriver::Draw()
 {
 	//static bool manual_open = false;
 	ImGui::BeginMainMenuBar();
-	if (ImGui::BeginMenu(ICON_FA_FILE" 文件")) {
+	if (ImGui::BeginMenu(ICON_FA_TOOLS" 选项")) {
 		ImGui::MenuItem(ICON_FA_SAVE" 保存数据", NULL, &is_save);
-		ImGui::MenuItem(ICON_FA_STREAM" 打开串口", NULL, &is_open_serial);
+		ImGui::MenuItem(ICON_FA_SD_CARD" 打开串口", NULL, &is_open_serial);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE" 窗口")) {
@@ -140,7 +140,7 @@ void LedDriver::Draw()
 		//ImGui::MenuItem(u8"自动布局");
 		ImGui::MenuItem(ICON_FA_PENCIL_RULER" 显示窗口", NULL, &is_show_draw_win);
 		ImGui::MenuItem(ICON_FA_SLIDERS_H" 初始化设置窗口", NULL, &is_show_init_win);
-		ImGui::MenuItem(ICON_FA_TOOLS" 点阵操作窗口", NULL, &is_show_mode_win);
+		ImGui::MenuItem(ICON_FA_BRAILLE" 点阵操作窗口", NULL, &is_show_mode_win);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -179,11 +179,11 @@ void LedDriver::Draw()
 		ImGuiID dock_main_id = dockspace_id;
 		//ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
 		ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.35f, NULL, &dock_main_id);
-		ImGuiID dock_id_right_bottom = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.50f, NULL, &dock_id_right);
+		ImGuiID dock_id_right_bottom = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.60f, NULL, &dock_id_right);
 
 		ImGui::DockBuilderDockWindow(ICON_FA_PENCIL_RULER" 显示窗口", dock_main_id);
 		ImGui::DockBuilderDockWindow(ICON_FA_SLIDERS_H" 初始化设置", dock_id_right);
-		ImGui::DockBuilderDockWindow(ICON_FA_TOOLS" 点阵操作", dock_id_right_bottom);
+		ImGui::DockBuilderDockWindow(ICON_FA_BRAILLE" 点阵操作", dock_id_right_bottom);
 		ImGui::DockBuilderFinish(dockspace_id);
 	}
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
@@ -216,7 +216,7 @@ void LedDriver::Draw()
 		if (is_video_play)
 			ThridSetPaintWindow(draw_list);
 
-		if (!is_start_play && !sPage.empty()) {
+		if (!is_start_play && !sPage.empty() && nCurrentMode==0) {
 			sPage[nWhichPage].DisplayCanvas(firstx, firsty, draw_area_size, draw_list);
 		}
 		ImGui::End();//Draw window End
@@ -351,7 +351,7 @@ void LedDriver::InitControlWindow(bool *p_open)
 void LedDriver::ModeSelectWindow(bool *p_open)
 {
 	
-	if (ImGui::Begin(ICON_FA_TOOLS" 点阵操作", p_open))
+	if (ImGui::Begin(ICON_FA_BRAILLE" 点阵操作", p_open))
 	{
 		
 		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"\uf4fe"" 手动选择模式\0" u8"\uf03d"" Video模式\0\0");
@@ -411,8 +411,6 @@ void LedDriver::ModeSelectWindow(bool *p_open)
 						sPage[i].bModify = false;
 					}
 
-					//if (!is_start_play)
-					//	sPage[i].DisplayCanvas(firstx, firsty, draw_area_size, dl);
 					ImGui::EndTabItem();
 				}
 				if (sPage[i].bCheckMouse) {

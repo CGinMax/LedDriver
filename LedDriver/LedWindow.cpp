@@ -14,6 +14,7 @@ LedWindow::LedWindow(int width, int hight, const char * title_name)
 
 LedWindow::~LedWindow()
 {
+	
 	glfwTerminate();
 }
 
@@ -36,9 +37,8 @@ void LedWindow::Init()
 		throw std::exception("Create Window Error");
 	}
 	
-	//int n;
-	//m_Image[0].pixels = stbi_load("C:\\Users\\CGinMax\\Desktop\\ledimage\\homo.jpg", &m_Image[0].width, &m_Image[0].height, &n, 0);
-	//glfwSetWindowIcon(m_pWindow, 1, m_Image);
+	m_Image[0].pixels = stbi_load("led.png", &m_Image[0].width, &m_Image[0].height, NULL, 0);
+	glfwSetWindowIcon(m_pWindow, 1, m_Image);
 	/*≈‰÷√GLFW…œœ¬Œƒ*/
 	glfwMakeContextCurrent(m_pWindow);
 
