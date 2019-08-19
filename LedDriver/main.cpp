@@ -13,6 +13,7 @@
 
 #include "LedWindow.h"
 #include "LedDriver.h"
+#include "IconsFontAwesome5.h"
 //#include <windows.h>
 
 #include <GLFW/glfw3.h>
@@ -53,9 +54,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplOpenGL2_Init();
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF("c:/windows/fonts/simhei.ttf", 15.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+	io.Fonts->AddFontFromFileTTF("Fonts/simhei.ttf", 15.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+	//Ìí¼Ófont icon
+	static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config;
+	icons_config.MergeMode = true;
+	icons_config.PixelSnapH = true;
+	io.Fonts->AddFontFromFileTTF("Fonts/fa-solid-900.ttf", 15.0f, &icons_config, icons_ranges);
+
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.IniFilename = NULL;
+	
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.Colors[ImGuiCol_Button] = ImColor(35, 106, 190, 180);
+	style.Colors[ImGuiCol_TabActive] = ImColor(48, 49, 51, 249);
+	style.Colors[ImGuiCol_TabHovered] = ImColor(25, 185, 238, 204);
+	style.WindowPadding.x = 2.0f;
+	style.FrameRounding = 8.0f;
+	style.ScrollbarSize = 17.0f;
+
 	while (!glfwWindowShouldClose(window.GetLedWindow()))
 	{
 		ImGui_ImplOpenGL2_NewFrame();

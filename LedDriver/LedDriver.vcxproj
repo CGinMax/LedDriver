@@ -182,6 +182,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
   <ItemGroup>
     <ClInclude Include="CustomTypes.h" />
     <ClInclude Include="DrawManage.h" />
+    <ClInclude Include="IconsFontAwesome5.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_impl_glfw.h" />

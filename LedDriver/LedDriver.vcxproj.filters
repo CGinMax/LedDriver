@@ -122,5 +122,8 @@
     <ClInclude Include="LedManualLayout.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="IconsFontAwesome5.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

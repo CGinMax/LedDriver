@@ -25,8 +25,8 @@ public:
 	void FirstSetPaintWindow(ImDrawList *draw_list);
 	void SecondSetPaintWindow(ImDrawList *draw_list);
 	void ThridSetPaintWindow(ImDrawList *draw_list);
-	void InitControlWindow();
-	void ModeSelectWindow(ImDrawList *dl);
+	void InitControlWindow(bool *p_open);
+	void ModeSelectWindow(bool *p_open);
 	void MouseClickDraw(int pageindex);
 	void InitVideo();
 	std::string SelectFileNameDialog();
@@ -65,7 +65,11 @@ private:
 	size_t frameIndex;
 	double dbNowTime;
 
-	LedManualLayout *manualLayout;
+	bool is_show_draw_win;
+	bool is_show_init_win;
+	bool is_show_mode_win;
+
+	//LedManualLayout *manualLayout;
 
 	CRITICAL_SECTION cs;
 

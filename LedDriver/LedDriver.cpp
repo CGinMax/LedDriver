@@ -1,6 +1,7 @@
 #include "LedDriver.h"
 #include "imgui_internal.h"
 #include "LedFileDialog.h"
+#include "IconsFontAwesome5.h"
 #include <iostream>
 #include <cstring>
 #include <fstream>
@@ -82,23 +83,26 @@ void logfile(std::vector<char> ucharvector)
 
 LedDriver::LedDriver()
 {
-	draw_area_size = 16.0f;
 	vertex_area_size[0] = 0;
 	vertex_area_size[1] = 0;
-	is_init_open = true;
-	is_init_vertex = false;
-	is_concern = false;
-	is_init_open = false;
-	is_start_play = false;
-	is_video_play = false;
-	is_save = false;
-	is_open_serial = false;
-	radio_select = 0;
-	nPageCount = 0;
-	nWhichPage = 0;
-	nCurrentMode = 0;
+	draw_area_size	 = 16.0f;
+	is_init_open	 = true;
+	is_init_vertex   = false;
+	is_concern		 = false;
+	is_init_open	 = false;
+	is_start_play    = false;
+	is_video_play    = false;
+	is_save			 = false;
+	is_open_serial   = false;
+	is_show_draw_win = true;
+	is_show_init_win = true;
+	is_show_mode_win = true;
+	radio_select	 = 0;
+	nPageCount		 = 0;
+	nWhichPage		 = 0;
+	nCurrentMode	 = 0;
 	//this->Init();
-	manualLayout = LedManualLayout::CreateManualLayout();
+	//manualLayout = LedManualLayout::CreateManualLayout();
 	InitializeCriticalSection(&cs);
 }
 
@@ -106,7 +110,7 @@ LedDriver::LedDriver()
 LedDriver::~LedDriver()
 {
 	DeleteCriticalSection(&cs);
-	delete manualLayout;
+	//delete manualLayout;
 }
 
 void LedDriver::Init()
@@ -124,23 +128,26 @@ void LedDriver::Init()
 
 void LedDriver::Draw()
 {
-	static bool manual_open = false;
+	//static bool manual_open = false;
 	ImGui::BeginMainMenuBar();
-	if (ImGui::BeginMenu(u8"文件")) {
-		ImGui::MenuItem(u8"保存", NULL, &is_save);
+	if (ImGui::BeginMenu(ICON_FA_FILE" 文件")) {
+		ImGui::MenuItem(ICON_FA_SAVE" 保存数据", NULL, &is_save);
+		ImGui::MenuItem(ICON_FA_STREAM" 打开串口", NULL, &is_open_serial);
 		ImGui::EndMenu();
 	}
-	if (ImGui::BeginMenu(u8"窗口")) {
-		ImGui::MenuItem(u8"手工布局", NULL, &manual_open);
-		ImGui::MenuItem(u8"自动布局");
-		ImGui::MenuItem(u8"打开串口", NULL, &is_open_serial);
+	if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE" 窗口")) {
+		//ImGui::MenuItem(u8"手工布局", NULL, &manual_open);
+		//ImGui::MenuItem(u8"自动布局");
+		ImGui::MenuItem(ICON_FA_PENCIL_RULER" 显示窗口", NULL, &is_show_draw_win);
+		ImGui::MenuItem(ICON_FA_SLIDERS_H" 初始化设置窗口", NULL, &is_show_init_win);
+		ImGui::MenuItem(ICON_FA_TOOLS" 点阵操作窗口", NULL, &is_show_mode_win);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
 
-	if (manual_open) manualLayout->DrawWindow(&manual_open);
+	//if (manual_open) manualLayout->DrawWindow(&manual_open);
 	//保存文件
-	if (is_save) { 
+	if (is_save) {
 		saveFileName = LedFileDialog::OpenSaveFileDialog(); 
 		if (nCurrentMode == 0)
 			_beginthread(ThreadSaveManual, 0, (void*)this);
@@ -174,9 +181,9 @@ void LedDriver::Draw()
 		ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.35f, NULL, &dock_main_id);
 		ImGuiID dock_id_right_bottom = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.50f, NULL, &dock_id_right);
 
-		ImGui::DockBuilderDockWindow(u8"显示窗口", dock_main_id);
-		ImGui::DockBuilderDockWindow(u8"初始化设置", dock_id_right);
-		ImGui::DockBuilderDockWindow(u8"点阵操作", dock_id_right_bottom);
+		ImGui::DockBuilderDockWindow(ICON_FA_PENCIL_RULER" 显示窗口", dock_main_id);
+		ImGui::DockBuilderDockWindow(ICON_FA_SLIDERS_H" 初始化设置", dock_id_right);
+		ImGui::DockBuilderDockWindow(ICON_FA_TOOLS" 点阵操作", dock_id_right_bottom);
 		ImGui::DockBuilderFinish(dockspace_id);
 	}
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
@@ -186,36 +193,38 @@ void LedDriver::Draw()
 		if (io.MouseWheel == 1) draw_area_size += 3.0f; else if(io.MouseWheel == -1) draw_area_size -= 3.0f;
 	}
 
-	ImGui::Begin(u8"显示窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
-	ImDrawList *draw_list = ImGui::GetWindowDrawList();
-	ImGui::Text(u8"显示区域"); ImGui::SameLine();
-	ImGui::Text("FPS:%f", io.Framerate);
-	/* Text下面的光标位置*/
-	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-	/* 设置第一个点的x，y*/
-	firstx = cursorPos.x + draw_area_size * 0.5f + 3.5f;
-	firsty = cursorPos.y + draw_area_size * 0.5f + 3.5f;
-	/* 设置画布的大小，超过屏幕大小会显示滚动条*/
-	ImGui::Dummy(ImVec2(draw_area_size * vertex_area_size[0], draw_area_size * vertex_area_size[1]));
-	//ImGui::InvisibleButton("dummy btn", ImVec2(1.0f+draw_area_size * vertex_area_size[0], 1.0f+draw_area_size * vertex_area_size[1]));
-	
-	if (is_init_vertex)
-		FirstSetPaintWindow(draw_list);
-	
-	if (is_start_play)
-		SecondSetPaintWindow(draw_list);
+	if (is_show_draw_win) {
+		ImGui::Begin(ICON_FA_PENCIL_RULER" 显示窗口", &is_show_draw_win, ImGuiWindowFlags_HorizontalScrollbar);
+		ImDrawList *draw_list = ImGui::GetWindowDrawList();
+		ImGui::Text(u8"显示区域"); ImGui::SameLine();
+		ImGui::Text("FPS:%f", io.Framerate);
+		/* Text下面的光标位置*/
+		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+		/* 设置第一个点的x，y*/
+		firstx = cursorPos.x + draw_area_size * 0.5f + 3.5f;
+		firsty = cursorPos.y + draw_area_size * 0.5f + 3.5f;
+		/* 设置画布的大小，超过屏幕大小会显示滚动条*/
+		ImGui::Dummy(ImVec2(draw_area_size * vertex_area_size[0], draw_area_size * vertex_area_size[1]));
+		//ImGui::InvisibleButton("dummy btn", ImVec2(1.0f+draw_area_size * vertex_area_size[0], 1.0f+draw_area_size * vertex_area_size[1]));
 
-	if (is_video_play)
-		ThridSetPaintWindow(draw_list);
+		if (is_init_vertex)
+			FirstSetPaintWindow(draw_list);
 
-	if (!is_start_play && !sPage.empty()) {
-		sPage[nWhichPage].DisplayCanvas(firstx, firsty, draw_area_size, draw_list);
+		if (is_start_play)
+			SecondSetPaintWindow(draw_list);
+
+		if (is_video_play)
+			ThridSetPaintWindow(draw_list);
+
+		if (!is_start_play && !sPage.empty()) {
+			sPage[nWhichPage].DisplayCanvas(firstx, firsty, draw_area_size, draw_list);
+		}
+		ImGui::End();//Draw window End
 	}
-	
-	ImGui::End();//Draw window End
 
-	InitControlWindow();
-	ModeSelectWindow(draw_list);
+
+	if (is_show_init_win) InitControlWindow(&is_show_init_win);
+	if (is_show_mode_win) ModeSelectWindow(&is_show_mode_win);
 	ImGui::End();//Background DockSpace End
 	ImGui::PopStyleVar();
 	
@@ -295,10 +304,10 @@ void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 }
 
 /* 控制显示窗口*/
-void LedDriver::InitControlWindow()
+void LedDriver::InitControlWindow(bool *p_open)
 {
 	static int input_size[2] = { 0,0 };
-	if (!ImGui::Begin(u8"初始化设置", false)) {
+	if (!ImGui::Begin(ICON_FA_SLIDERS_H" 初始化设置", p_open)) {
 		ImGui::End();
 		return;
 	}
@@ -339,13 +348,13 @@ void LedDriver::InitControlWindow()
 	ImGui::End();
 }
 
-void LedDriver::ModeSelectWindow(ImDrawList *dl)
+void LedDriver::ModeSelectWindow(bool *p_open)
 {
 	
-	if (ImGui::Begin(u8"点阵操作", false))
+	if (ImGui::Begin(ICON_FA_TOOLS" 点阵操作", p_open))
 	{
 		
-		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"手动选择模式\0Video模式\0\0");
+		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"\uf4fe"" 手动选择模式\0" u8"\uf03d"" Video模式\0\0");
 		switch (nCurrentMode)
 		{
 		case 0:
