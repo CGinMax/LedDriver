@@ -36,13 +36,13 @@ void LedWindow::Init()
 		glfwTerminate();
 		throw std::exception("Create Window Error");
 	}
-	
-	m_Image[0].pixels = stbi_load("led.png", &m_Image[0].width, &m_Image[0].height, NULL, 0);
+	int n;
+	m_Image[0].pixels = stbi_load("led.png", &m_Image[0].width, &m_Image[0].height, &n, 0);
 	glfwSetWindowIcon(m_pWindow, 1, m_Image);
 	/*≈‰÷√GLFW…œœ¬Œƒ*/
 	glfwMakeContextCurrent(m_pWindow);
 
-	glfwSwapInterval(1); 
+	glfwSwapInterval(1);
 
 	glfwGetFramebufferSize(m_pWindow, &m_iWidth, &m_iHight);
 	glViewport(0, 0, m_iWidth, m_iHight);
