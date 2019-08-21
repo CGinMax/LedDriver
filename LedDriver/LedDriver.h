@@ -42,7 +42,7 @@ private:
 	int vertex_area_size[2];
 	
 	/* 初始化数据变量*/
-	int radio_select;
+	int combo_select;
 	bool is_init_open;
 	bool is_init_vertex;
 	bool is_concern;
@@ -69,7 +69,7 @@ private:
 	bool is_show_init_win;
 	bool is_show_mode_win;
 
-	//LedManualLayout *manualLayout;
+	LedManualLayout *manualLayout;
 
 	CRITICAL_SECTION cs;
 

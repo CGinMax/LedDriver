@@ -37,7 +37,7 @@ void LedWindow::Init()
 		throw std::exception("Create Window Error");
 	}
 	int n;
-	m_Image[0].pixels = stbi_load("led.png", &m_Image[0].width, &m_Image[0].height, &n, 0);
+	m_Image[0].pixels = stbi_load("logo.png", &m_Image[0].width, &m_Image[0].height, &n, 0);
 	glfwSetWindowIcon(m_pWindow, 1, m_Image);
 	/*еДжцGLFWиообнд*/
 	glfwMakeContextCurrent(m_pWindow);

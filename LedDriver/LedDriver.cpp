@@ -97,12 +97,12 @@ LedDriver::LedDriver()
 	is_show_draw_win = true;
 	is_show_init_win = true;
 	is_show_mode_win = true;
-	radio_select	 = 0;
+	combo_select	 = 0;
 	nPageCount		 = 0;
 	nWhichPage		 = 0;
 	nCurrentMode	 = 0;
 	//this->Init();
-	//manualLayout = LedManualLayout::CreateManualLayout();
+	manualLayout = LedManualLayout::CreateManualLayout();
 	InitializeCriticalSection(&cs);
 }
 
@@ -110,7 +110,7 @@ LedDriver::LedDriver()
 LedDriver::~LedDriver()
 {
 	DeleteCriticalSection(&cs);
-	//delete manualLayout;
+	delete manualLayout;
 }
 
 void LedDriver::Init()
@@ -128,7 +128,7 @@ void LedDriver::Init()
 
 void LedDriver::Draw()
 {
-	//static bool manual_open = false;
+	static bool manual_open = false;
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu(ICON_FA_TOOLS" 选项")) {
 		ImGui::MenuItem(ICON_FA_SAVE" 保存数据", NULL, &is_save);
@@ -136,7 +136,7 @@ void LedDriver::Draw()
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE" 窗口")) {
-		//ImGui::MenuItem(u8"手工布局", NULL, &manual_open);
+		ImGui::MenuItem(ICON_FA_HAND_PAPER" 手工布局", NULL, &manual_open);
 		//ImGui::MenuItem(u8"自动布局");
 		ImGui::MenuItem(ICON_FA_PENCIL_RULER" 显示窗口", NULL, &is_show_draw_win);
 		ImGui::MenuItem(ICON_FA_SLIDERS_H" 初始化设置窗口", NULL, &is_show_init_win);
@@ -145,7 +145,20 @@ void LedDriver::Draw()
 	}
 	ImGui::EndMainMenuBar();
 
-	//if (manual_open) manualLayout->DrawWindow(&manual_open);
+	if (manual_open) { 
+		if (!manualLayout->IsInitCanvas()) {
+			manualLayout->SetCoordinate(vertex_area_size, GetRoute());
+			manualLayout->SetStatus(true);
+		}
+		if (manualLayout->IsSettingDone()) {
+			combo_select = 9;
+			manual_open = false;
+		}
+		manualLayout->DrawWindow(&manual_open);
+	}
+	else {
+		manualLayout->SetStatus(false);
+	}
 	//保存文件
 	if (is_save) {
 		saveFileName = LedFileDialog::OpenSaveFileDialog(); 
@@ -156,6 +169,8 @@ void LedDriver::Draw()
 		is_save = false;
 	}
 	if (is_open_serial) { OpenSerialPort(); is_open_serial = false; } //打开串口
+
+	
 
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	
@@ -242,7 +257,7 @@ void LedDriver::FirstSetPaintWindow(ImDrawList *draw_list)
 	}
 
 	/* 绘制数据线*/
-	if (radio_select != 0) {
+	if (combo_select != 0) {
 		std::list<LedInt2> line_points = GetRoute();
 		std::list<LedInt2>::iterator line_iter1 = line_points.begin();
 		std::list<LedInt2>::iterator line_iter2 = line_points.begin();
@@ -316,8 +331,8 @@ void LedDriver::InitControlWindow(bool *p_open)
 		vertex_area_size[0] = input_size[0];
 		vertex_area_size[1] = input_size[1];
 		is_init_vertex = true;
-		
 		is_concern = false;
+
 	}
 	ImGui::SameLine();
 	if (ImGui::Button(u8"清除点阵")) {
@@ -325,14 +340,31 @@ void LedDriver::InitControlWindow(bool *p_open)
 		vertex_area_size[1] = input_size[1] = 0;
 		is_init_vertex = false;
 		is_concern = false;
-		radio_select = 0;
+		combo_select = 0;
 		Clear();
 	}
 
 	ImGui::Separator();
 	//ImGui::Text(u8"方向选择");
-	const char* items[] = { u8"无", u8"上左纵向", u8"上左横向", u8"下左纵向", u8"下左横向", u8"上右纵向", u8"上右横向", u8"下右纵向", u8"下右横向" };
-	ImGui::Combo(u8"灯布局方向", &radio_select, items, IM_ARRAYSIZE(items));
+	const char* items[] = { u8"无", u8"上左纵向", u8"上左横向", u8"下左纵向", u8"下左横向", u8"上右纵向", u8"上右横向", u8"下右纵向", u8"下右横向", u8"自定义" };
+
+	static const char *item_current;
+	item_current = items[combo_select];
+	if (ImGui::BeginCombo(u8"灯布局方向", item_current)) 
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+		{
+			bool selected = (item_current == items[n]);
+			if (ImGui::Selectable(items[n], selected))
+				//item_current = items[n];
+				combo_select = n;
+			if (selected)
+				ImGui::SetItemDefaultFocus();   
+		}
+		ImGui::EndCombo();
+	}
+
+	//ImGui::Combo(u8"灯布局方向", &combo_select, items, IM_ARRAYSIZE(items));
 
 	if (ImGui::Button(u8"绘制确认")) {
 		index_list = GetRoute();
@@ -470,7 +502,7 @@ std::list<LedInt2> LedDriver::GetRoute()
 {
 	std::list<LedInt2> route_points;
 	
-	switch (radio_select)
+	switch (combo_select)
 	{
 	case 0:
 		break;
@@ -497,6 +529,10 @@ std::list<LedInt2> LedDriver::GetRoute()
 		break;
 	case 8:
 		route_points = MatrixStartTraverseLeftRight(vertex_area_size[0] - 1, vertex_area_size[1] - 1, false);
+		break;
+	case 9:
+		route_points = manualLayout->GetLineDirection();
+		ImGui::GetWindowDrawList()->AddCircleFilled(ImVec2(firstx + (*route_points.begin()).x*draw_area_size, firsty + (*route_points.begin()).y*draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE, 32);
 		break;
 	}
 
@@ -562,7 +598,6 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	{
 	//手动模式
 	case 'a': 
-
 		for (size_t i = 0; i < sPage.size(); i++) {
 			if (sPage[i].bGradientFill2None || sPage[i].bGradientNone2Fill) {
 				int gradientFPS = (int)(sPage[i].fTime*25.0f);//1000/40

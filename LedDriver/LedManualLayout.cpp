@@ -1,14 +1,19 @@
 #include "LedManualLayout.h"
 #include <cstdio>
-
+#include <functional>
+#include "IconsFontAwesome5.h"
 #include "imgui_internal.h"
 
 LedManualLayout *LedManualLayout::ledmanuallayout = nullptr;
 
 LedManualLayout::LedManualLayout() :
 	bAddingLine(false),
-	fLatticeSize(16.0f)
+	bInitCanvas(false),
+	bCheckLine(false),
+	bSettingDone(false),
+	fLatticeSize(18.0f)
 {
+	area[0] = area[1] = 2;
 }
 
 
@@ -26,92 +31,137 @@ LedManualLayout * LedManualLayout::CreateManualLayout()
 
 void LedManualLayout::DrawWindow(bool * p_open)
 {
-	ImGuiWindowFlags background_dockspace_flag = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-	ImGui::Begin("Manual Background", p_open, background_dockspace_flag);
-
-	ImGuiID dockspace_id = ImGui::GetID("Manual Dockspace");
-	if (ImGui::DockBuilderGetNode(dockspace_id) == NULL)
-	{
-		ImGui::DockBuilderRemoveNode(dockspace_id);
-		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-		ImGui::DockBuilderSetNodeSize(dockspace_id, ImVec2(500.0f, 500.0f));
-
-		ImGuiID dock_main_id = dockspace_id;
-		ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.35f, NULL, &dock_main_id);
-
-		ImGui::DockBuilderDockWindow(u8"手工布局窗口", dock_main_id);
-		ImGui::DockBuilderDockWindow(u8"布局选项", dock_id_left);
-		ImGui::DockBuilderFinish(dockspace_id);
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.KeysDown[341]) {
+		if (io.MouseWheel == 1) fLatticeSize += 2.0f; else if (io.MouseWheel == -1) fLatticeSize -= 2.0f;
 	}
+	ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_FirstUseEver);
+	ImGui::Begin(ICON_FA_HAND_PAPER" 手工布局窗口", p_open, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+	
 
-	ImGui::Begin(u8"布局选项", false);
-	ImGui::Text("Hello");
-
-	ImGui::End();//End LayoutOption
-
-	ImGui::Begin(u8"手工布局窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
 	ImDrawList *man_draw_list = ImGui::GetWindowDrawList();
 	
-	//static ImVector<ImVec2> points;
+	ImGui::Checkbox(u8"检查连线", &bCheckLine);
+	ImGui::SameLine();
+	if (ImGui::Button(u8"完成布局")) {
+		bSettingDone = true;
+	}
 
 	ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
 	ImVec2 canvas_size = ImGui::GetContentRegionAvail();        // Resize canvas to what's available
 	if (canvas_size.x < 50.0f) canvas_size.x = 50.0f;
 	if (canvas_size.y < 50.0f) canvas_size.y = 50.0f;
-	man_draw_list->AddRectFilledMultiColor(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(50, 50, 50, 255), IM_COL32(50, 50, 60, 255), IM_COL32(60, 60, 70, 255), IM_COL32(50, 50, 60, 255));
-	man_draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(255, 255, 255, 255));
+	man_draw_list->AddRectFilledMultiColor(canvas_pos, ImVec2(canvas_pos.x + fLatticeSize * area[0] + 30.0f, canvas_pos.y + fLatticeSize * area[1] + 30.0f), IM_COL32(50, 50, 50, 255), IM_COL32(50, 50, 60, 255), IM_COL32(60, 60, 70, 255), IM_COL32(50, 50, 60, 255));
+	man_draw_list->AddRect(canvas_pos, ImVec2(canvas_pos.x + fLatticeSize * area[0] + 30.0f, canvas_pos.y + fLatticeSize * area[1] + 30.0f), IM_COL32_WHITE);
 
-
-	ImGui::InvisibleButton("canvas", canvas_size);
-	ImVec2 mouse_pos_in_canvas = ImVec2(ImGui::GetIO().MousePos.x - canvas_pos.x, ImGui::GetIO().MousePos.y - canvas_pos.y);
-	if (bAddingLine)
-	{
-		
-		//points.push_back(mouse_pos_in_canvas);
-		ivRectPoints[1] = mouse_pos_in_canvas;
-
-		ImVec2 firstcentralpoint = ImVec2(canvas_pos.x + ivRectPoints[0].x + fLatticeSize * 0.5f, canvas_pos.y + ivRectPoints[0].y + fLatticeSize * 0.5f);
-		int cols = (ivRectPoints[1].x - ivRectPoints[0].x) / fLatticeSize;
-		int rows = (ivRectPoints[1].y - ivRectPoints[0].y) / fLatticeSize;
-		for (int j = 0; j < rows; j++) {
-			for (int i = 0; i < cols; i++) {
-				man_draw_list->AddCircle(ImVec2(firstcentralpoint.x + i * fLatticeSize, firstcentralpoint.y + j * fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32, 2.0f);
+	ImVec2 first_point(canvas_pos.x + fLatticeSize*0.5f + 3.5f, canvas_pos.y + fLatticeSize * 0.5f + 3.5f);
+	
+	if (!bCheckLine) {
+		for (int i = 0; i < area[1]; i++) {
+			for (int j = 0; j < area[0]; j++) {
+				man_draw_list->AddCircle(
+					ImVec2(first_point.x + j * fLatticeSize, first_point.y + i * fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32, 2.0f);
 			}
 		}
-		char textcoord[10];
-		sprintf(textcoord, "(%d,%d)", cols, rows);
-		man_draw_list->AddText(ImVec2(ImGui::GetIO().MousePos.x + 20.0f, ImGui::GetIO().MousePos.y - 20.0f), IM_COL32_WHITE, textcoord);
+		//画第一个点
+		man_draw_list->AddCircleFilled(ImVec2(first_point.x + (*lCoordinate.begin()).x *fLatticeSize, first_point.y + (*lCoordinate.begin()).y*fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32);
+		std::list<LedInt2>::iterator line_iter1, line_iter2;
+		line_iter1 = line_iter2 = lCoordinate.begin();
 
+		line_iter2++;
+		while (line_iter2 != lCoordinate.end()) {
+			man_draw_list->AddLine(ImVec2(first_point.x + (*line_iter1).x*fLatticeSize, first_point.y + (*line_iter1).y*fLatticeSize),
+				ImVec2(first_point.x + (*line_iter2).x*fLatticeSize, first_point.y + (*line_iter2).y*fLatticeSize), IM_COL32(90, 250, 250, 255), 2.0f);
+			line_iter1++;
+			line_iter2++;
+		}
+	}
+	else {
+		for (auto check_iter = lCoordinate.begin(); check_iter != lCoordinate.end(); check_iter++) {
+			man_draw_list->AddCircleFilled(ImVec2(first_point.x + (*check_iter).x*fLatticeSize, first_point.y + (*check_iter).y*fLatticeSize), fLatticeSize*0.5f, IM_COL32_WHITE, 32);
+		}
+	}
+
+	ImGui::InvisibleButton("canvas", ImVec2(fLatticeSize * area[0] + 30.0f, fLatticeSize * area[1] + 30.0f));
+	LedInt2 mouse_point((int)((io.MousePos.x - first_point.x + fLatticeSize*0.5f) / fLatticeSize), (int)((io.MousePos.y - first_point.y + fLatticeSize * 0.5f) / fLatticeSize));
+	if (bAddingLine)
+	{
+		liRectPoints[1] = mouse_point;
 
 		if (ImGui::IsMouseReleased(0)) {
-			
+			auto line_point_iter1 = std::find(lCoordinate.begin(), lCoordinate.end(), liRectPoints[0]);
+			auto line_point_iter2 = std::find(lCoordinate.begin(), lCoordinate.end(), liRectPoints[1]);
+			if (line_point_iter1 != lCoordinate.end() && line_point_iter2 != lCoordinate.end())
+			{
+				//iter1 小于 iter2，删除iter1->iter2，否则相反
+				int point_dist1 = std::distance(lCoordinate.begin(), line_point_iter1);
+				int point_dist2 = std::distance(lCoordinate.begin(), line_point_iter2);
+				if (point_dist1 < point_dist2)
+					if ((point_dist2 - point_dist1) > 1) lCoordinate.erase(++line_point_iter1, line_point_iter2);
+					   
+				else 
+					if((point_dist1 - point_dist2) > 1) lCoordinate.erase(++line_point_iter2, line_point_iter1);
+				
+			}
+			else if (line_point_iter1 != lCoordinate.end() && line_point_iter2 == lCoordinate.end())
+			{
+				line_point_iter1++;
+				lCoordinate.insert(line_point_iter1, liRectPoints[1]);
+			}
+			else if (line_point_iter1 == lCoordinate.end() && line_point_iter2 != lCoordinate.end())
+			{
+				lCoordinate.insert(line_point_iter2, liRectPoints[0]);
+			}
 		}
 		if (!ImGui::IsMouseDown(0)) {
 			bAddingLine = false;
 
 		}
-
 	}
 	if (ImGui::IsItemHovered())
 	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 		if (!bAddingLine && ImGui::IsMouseClicked(0))
 		{
-			//points.push_back(mouse_pos_in_canvas);
-			ivRectPoints[0] = ivRectPoints[1] = mouse_pos_in_canvas;
+			liRectPoints[0] = liRectPoints[1] = mouse_point;
 			bAddingLine = true;
 		}
 	}
-	//draw_list->PushClipRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), true);      // clip lines within the canvas (if we resize it, etc.)
-	//for (int i = 0; i < points.Size - 1; i += 2)
-	//	draw_list->AddRect(ImVec2(canvas_pos.x + points[i].x, canvas_pos.y + points[i].y), ImVec2(canvas_pos.x + points[i + 1].x, canvas_pos.y + points[i + 1].y), IM_COL32(255, 255, 0, 255), 0.0f, ImDrawCornerFlags_All, 2.0f);
-	//draw_list->PopClipRect();
-	//if (adding_preview)
-	//	points.pop_back();
-	if (bAddingLine) man_draw_list->AddRect(ImVec2(canvas_pos.x + ivRectPoints[0].x, canvas_pos.y + ivRectPoints[0].y), ImVec2(canvas_pos.x + ivRectPoints[1].x, canvas_pos.y + ivRectPoints[1].y), IM_COL32(255, 255, 0, 255), 0.0f, ImDrawCornerFlags_All, 2.0f);
+	if (bAddingLine) man_draw_list->AddLine(ImVec2(first_point.x + liRectPoints[0].x*fLatticeSize, first_point.y + liRectPoints[0].y*fLatticeSize), ImVec2(first_point.x + liRectPoints[1].x*fLatticeSize, first_point.y + liRectPoints[1].y*fLatticeSize), IM_COL32(255, 255, 0, 255), 2.0f);
 
-
+	
 
 	ImGui::End();//End ManualLayout
 
-	ImGui::End();//End Manual Background
+}
+
+void LedManualLayout::SetCoordinate(int area[2], std::list<LedInt2> tlist)
+{
+	if (!lCoordinate.empty())
+		lCoordinate.clear();
+	lCoordinate.assign(tlist.begin(), tlist.end());
+	this->area[0] = area[0];
+	this->area[1] = area[1];
+	bSettingDone = false;
+}
+
+std::list<LedInt2> LedManualLayout::GetLineDirection()
+{
+	return this->lCoordinate;
+}
+
+bool LedManualLayout::IsInitCanvas()
+{
+	return bInitCanvas;
+}
+
+bool LedManualLayout::IsSettingDone()
+{
+	return bSettingDone;
+}
+
+void LedManualLayout::SetStatus(bool status)
+{
+	bInitCanvas = status;
 }
