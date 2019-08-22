@@ -97,11 +97,12 @@ void LedManualLayout::DrawWindow(bool * p_open)
 				//iter1 小于 iter2，删除iter1->iter2，否则相反
 				int point_dist1 = std::distance(lCoordinate.begin(), line_point_iter1);
 				int point_dist2 = std::distance(lCoordinate.begin(), line_point_iter2);
-				if (point_dist1 < point_dist2)
+				if (point_dist1 < point_dist2) {
 					if ((point_dist2 - point_dist1) > 1) lCoordinate.erase(++line_point_iter1, line_point_iter2);
-					   
-				else 
+				}
+				else {
 					if((point_dist1 - point_dist2) > 1) lCoordinate.erase(++line_point_iter2, line_point_iter1);
+				}
 				
 			}
 			else if (line_point_iter1 != lCoordinate.end() && line_point_iter2 == lCoordinate.end())

@@ -74,39 +74,11 @@ std::list<LedInt2> LedReadVideo::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, i
 	std::list<LedInt2> frameCoordinate;
 	std::deque<Mat> vCutedFrame = CutFrameImage(tmpFrame, nCol, nRow);
 	for (size_t i = 0; i < vCutedFrame.size(); i++) {
-		/* 用迭代器访问每个橡素，并取平均值*/
-		//int mc = 0;
-		//for (cv::Mat_<uchar>::iterator point_iter = vCutedFrame.at(i).begin<uchar>(); point_iter != vCutedFrame.at(i).end<uchar>(); point_iter++) {
-		//	if ((int)(*point_iter) > 125)
-		//		mc++;
-		//	//if ((int)(point_iter))
-		//}
-		//
-		//int nEff = mc > ((vCutedFrame[i].rows*vCutedFrame[i].cols) / 3) ? 1 : 0;
-		//if (nEff) {
-		//	frameCoordinate.push_back(LedInt2(i / nCol, i % nCol));
-		//}
-
-		/* 取中间值*/
-		/*cv::Mat_<uchar>::iterator cenpoint = vCutedFrame.at(i).begin<uchar>() + (vCutedFrame[i].rows*vCutedFrame[i].cols) / 2;
-		if ((int)(*cenpoint) > 125)
-			frameCoordinate.push_back(LedInt2(i / nCol, i % nCol));*/
-
+		
 		if (cv::countNonZero(vCutedFrame[i]) > 64) {
 			frameCoordinate.push_back(LedInt2(i % nCol, i / nCol));
 		}
-		/* 指针遍历*/
-		/*int mc = 0;
-		int framesize = vCutedFrame[i].rows*vCutedFrame[i].cols;
-		for (int k = 0; k < framesize; k++) {
-			uchar pixeldata = vCutedFrame[i].ptr<uchar>(k / vCutedFrame[i].cols)[k];
-			if ((int)pixeldata > 125)
-				mc++;
-		}
-		int nEff = mc > ((vCutedFrame[i].rows*vCutedFrame[i].cols) / 4) ? 1 : 0;
-		if (nEff) {
-			frameCoordinate.push_back(LedInt2(i / nCol, i % nCol));
-		}*/
+		
 	}
 
 	return frameCoordinate;

@@ -123,7 +123,7 @@ void LedDriver::Init()
 	sPage.push_back(new_obj);
 	
 	nPageCount = 1;
-	
+	nWhichPage = 0;
 }
 
 void LedDriver::Draw()
@@ -328,11 +328,12 @@ void LedDriver::InitControlWindow(bool *p_open)
 	}
 	ImGui::InputInt2(u8"长X宽", input_size);
 	if (ImGui::Button(u8"绘制点阵")) {
+		Clear();
 		vertex_area_size[0] = input_size[0];
 		vertex_area_size[1] = input_size[1];
 		is_init_vertex = true;
 		is_concern = false;
-
+		combo_select = 0;
 	}
 	ImGui::SameLine();
 	if (ImGui::Button(u8"清除点阵")) {
@@ -386,7 +387,7 @@ void LedDriver::ModeSelectWindow(bool *p_open)
 	if (ImGui::Begin(ICON_FA_BRAILLE" 点阵操作", p_open))
 	{
 		
-		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"\uf4fe"" 手动选择模式\0" u8"\uf03d"" Video模式\0\0");
+		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"\uf4fe"" 手动选择模式\0" ICON_FA_PHOTO_VIDEO" 图片模式\0" u8"\uf03d"" 动态模式\0\0");
 		switch (nCurrentMode)
 		{
 		case 0:
@@ -468,6 +469,9 @@ void LedDriver::ModeSelectWindow(bool *p_open)
 			
 			break;
 		case 1:
+
+			break;
+		case 2:
 			if (ImGui::Button(u8"导入")) {
 				testVideo.SetVideoFileName(SelectFileNameDialog());
 				_beginthread(ThreadInitVideo, 0, (void*)this);
