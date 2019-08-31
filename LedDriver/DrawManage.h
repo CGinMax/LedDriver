@@ -1,26 +1,47 @@
 #pragma once
-#include "imgui.h"
-#include <stack>
-struct LedInt2 {
-	int x, y;
-	LedInt2() { x = y = 0; }
-	LedInt2(int _x, int _y) { x = _x; y = _y; }
-	int  operator[] (size_t idx) const { assert(idx <= 1); return (&x)[idx]; }
-	int& operator[] (size_t idx) { assert(idx <= 1); return (&x)[idx]; }
 
-};
+#include "CustomTypes.h"
+#include "LedManualLayout.h"
+#include "ControlMode.h"
+#include <stack>
+#include <list>
+
 class DrawManage
 {
 public:
 	DrawManage();
+	DrawManage(std::shared_ptr<CommonData> commonData, ControlMode *controlMode);
 	~DrawManage();
 
 public:
-	float firstpoint[2];
-	int nMatrixArea[2];
-	std::stack<LedInt2> GetOrder();
-	void SetOrder(int rs);
-	std::stack<LedInt2> sOutputOrder;
+	void InitControlWindow(float x, float y, float c_size);
+	std::list<LedInt2> GetRoute();
+	void ProjectUpdate();
+	bool IsDrawFinish();
+public:
+	bool isInitVertex;
 private:
+	int inputSize[2];
+	float row_dist;
+	float col_dist;
+	float firstPointx;
+	float firstPointy;
+	const char *item_current;
+	bool isConcern;
+	float zoomProportion;
+	LedManualLayout *manual;
+	ControlMode *m_controlMode;
+	std::shared_ptr<CommonData> m_commonData;
+
+private:
+	void InitMode();
+	void ClearMode();
+	void RouteMoveLeftRight(int & x, int & y, bool & d, bool &z, int incrse, std::list<LedInt2> &my_list);
+	void RouteMoveUpDown(int & x, int & y, bool & d, bool &z, int incrse, std::list<LedInt2> &my_list);
+	std::list<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection, bool isZDirection);
+	std::list<LedInt2> MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection, bool isZDirection);
+
 };
+
+
 

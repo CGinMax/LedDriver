@@ -15,12 +15,15 @@
 #include "LedDriver.h"
 #include "IconsFontAwesome5.h"
 //#include <windows.h>
+#include <opencv2/opencv.hpp>
 
 #include <GLFW/glfw3.h>
 #include <gl/GL.h>
 #include <gl/GLU.h>
 
+//#ifndef STB_IMAGE_IMPLEMENTATION
 //#define STB_IMAGE_IMPLEMENTATION
+//#endif
 //#include "stb_image.h"
 
 
@@ -30,6 +33,45 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
+
+void DrawImageTest()
+{
+	ImDrawList *dl = ImGui::GetWindowDrawList();
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	cv::Mat mDrawImage = cv::imread("C:\\Users\\CGinMax\\Desktop\\地球.jpg", cv::IMREAD_UNCHANGED);
+	//cv::imshow("hello", mDrawImage);
+	int mWidth = mDrawImage.cols;
+	int mHeight = mDrawImage.rows;
+	int mChannels = mDrawImage.channels();
+	GLubyte *imagepixel;
+	imagepixel = new GLubyte[mWidth*mHeight * mChannels];
+	memcpy(imagepixel, mDrawImage.data, mWidth*mHeight * mChannels * sizeof(unsigned char));
+	GLubyte *tmpPixels = imagepixel;
+	if (tmpPixels)
+	{
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imagepixel);
+		if (mChannels == 3)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, imagepixel);
+		if (mChannels == 4)
+			glTexImage2D(GL_TEXTURE_2D, 0, 4, mWidth, mHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, tmpPixels);
+
+		/*if (mChannels == 3)
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, mWidth, mHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, (void*)imagepixel);
+		if (mChannels == 4)
+			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_BGRA_EXT, mWidth, mHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (void*)imagepixel);
+*/
+	}
+	ImGui::Value("nr_channels: ", mChannels);
+	ImGui::Image((ImTextureID)texture, ImVec2(float(mWidth), float(mHeight)));
+	delete[] imagepixel;
+}
 
 
 static void glfw_error_callback(int error, const char* description)
@@ -42,8 +84,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	glfwSetErrorCallback(glfw_error_callback);
 
 	LedWindow window(1280, 720, "Led Driver");
-	LedDriver driver;
-	
+	std::shared_ptr<CommonData> projectData = std::make_shared<CommonData>();
+	//CommonData *projectData = new CommonData;
+	LedDriver *driver = new LedDriver(projectData);
 	ImGui::CreateContext();
 	
 	ImGui::StyleColorsDark();
@@ -78,22 +121,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ImGui_ImplOpenGL2_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		driver.Draw();
+		driver->Draw();
 		//driver.InitControlWindow();
-		//{
-		//	ImGui::SetNextWindowPos(ImVec2(0, 0));
-		//	ImGui::SetNextWindowSize(ImVec2(500, 720));
-		//	ImGui::Begin(u8"你好窗口", false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-		//	
-		//	ImGui::Text(u8"绘制区域");
-
-		//	//TODO:
-		//	ImGui::Button("hello");
-		//	
-		//	ImGui::End();
-
-		//}
-		/*渲染*/
+		/*ImGui::Begin("draw texture");
+		DrawImageTest();
+		ImGui::End();*/
+		
 		ImGui::Render();
 		//glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -108,5 +141,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplOpenGL2_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+	delete driver;
+
 	return 0;
 }

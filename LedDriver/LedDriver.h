@@ -5,78 +5,58 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <mutex>
 #include "imgui.h"
 #include "CustomTypes.h"
-#include "InstancePageData.h"
 #include "LedReadPhoto.h"
 #include "LedReadVideo.h"
 #include "LedManualLayout.h"
+#include "ControlMode.h"
+#include "DrawManage.h"
+#include "LedProject.h"
 
 class LedDriver
 {
 public:
 	LedDriver();
+	LedDriver(std::shared_ptr<CommonData> pData);
 	~LedDriver();
-	void Init();
 	void Draw();
-
-	void Clear();
-	std::list<LedInt2> GetRoute();
+	void MenuBarControl();
 	void FirstSetPaintWindow(ImDrawList *draw_list);
 	void SecondSetPaintWindow(ImDrawList *draw_list);
 	void ThridSetPaintWindow(ImDrawList *draw_list);
-	void InitControlWindow(bool *p_open);
-	void ModeSelectWindow(bool *p_open);
-	void MouseClickDraw(int pageindex);
-	void InitVideo();
-	std::string SelectFileNameDialog();
-	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
-	std::vector<InstancePageData> GetManualPage();
-	int GetVertexArea();
-	LedReadVideo& GetVideo();
+	void ThreadSaveManual();
+	void ThreadSaveVideo();
+	void DrawBackgroundImage(ImDrawList *draw_list, ImVec2 &left_up, ImVec2 &right_down);
+
 
 private:
-	float draw_area_size;
+	//float draw_area_size;
 	float firstx;
 	float firsty;
-	int vertex_area_size[2];
 	
 	/* 初始化数据变量*/
-	int combo_select;
-	bool is_init_open;
-	bool is_init_vertex;
-	bool is_concern;
-	bool is_set_open;
-	bool is_start_play;
-	bool is_video_play;
-
+	bool is_new_project;
+	bool is_open_project;
+	bool is_save_project;
 	bool is_save;
 	bool is_open_serial;
-	int nCurrentMode;
-	std::list<LedInt2> index_list;
-	std::vector<InstancePageData> sPage;
-	size_t nIntervalNum;
-	int nPageCount;
-	int nWhichPage;
 	//
-	LedReadVideo testVideo;
 	std::string saveFileName;
-
-	size_t frameIndex;
-	double dbNowTime;
-
-	bool is_show_draw_win;
+	bool is_open_manual;
 	bool is_show_init_win;
 	bool is_show_mode_win;
 
 	LedManualLayout *manualLayout;
-
+	std::shared_ptr<CommonData> commonData;
+	DrawManage *drawInitWindow;
+	ControlMode *controlMode;
+	LedProject *project;
+	std::mutex m_mutex;
 	CRITICAL_SECTION cs;
 
+	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
 	void OpenSerialPort();
-	void RouteMoveLeftRight(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list);
-	void RouteMoveUpDown(int & x, int & y, bool & d, int incrse, std::list<LedInt2> &my_list);
-	std::list<LedInt2> MatrixStartTraverseUpDown(int xStart, int yStart, bool isPstDirection);
-	std::list<LedInt2> MatrixStartTraverseLeftRight(int xStart, int yStart, bool isPstDirection);
 };
 

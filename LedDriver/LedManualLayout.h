@@ -3,7 +3,7 @@
 #include <deque>
 #include <list>
 #include "CustomTypes.h"
-#include "imgui.h"
+
 class LedManualLayout
 {
 public:
@@ -11,7 +11,7 @@ public:
 
 	static LedManualLayout *CreateManualLayout();
 	void DrawWindow(bool *p_open);
-	void SetCoordinate(int area[2], std::list<LedInt2> tlist);
+	void SetCoordinate(int area[2], float cicle_size, float row_dict, float col_dict, std::list<LedInt2> tlist);
 	std::list<LedInt2> GetLineDirection();
 	bool IsInitCanvas();
 	bool IsSettingDone();
@@ -26,6 +26,8 @@ private:
 	bool bSettingDone;
 	float fLatticeSize;
 	int area[2];
+	float rowDict;
+	float colDict;
 	LedInt2 liRectPoints[2];
 	std::list<LedInt2> lCoordinate;
 };

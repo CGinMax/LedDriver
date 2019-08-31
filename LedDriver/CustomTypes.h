@@ -1,5 +1,16 @@
 #pragma once
 #include <windows.h>
+#include <list>
+#include <memory>
+namespace Led {
+	struct Image {
+		int width;
+		int height;
+		int channels;
+
+	};
+
+}
 struct LedInt2 {
 	int x, y;
 	LedInt2() { x = y = 0; }
@@ -10,3 +21,18 @@ struct LedInt2 {
 		return ((x == tli.x) && (y == tli.y));
 	}
 };
+class CommonData
+{
+public:
+	CommonData();
+	~CommonData();
+	void Init();
+
+	int whMatrix[2];
+	float rowDict;
+	float colDict;
+	float cicleSize;
+	int comboSelect;
+	std::list<LedInt2> lineList;
+};
+

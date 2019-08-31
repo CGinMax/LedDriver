@@ -163,6 +163,8 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ControlMode.cpp" />
+    <ClCompile Include="CustomTypes.cpp" />
     <ClCompile Include="DrawManage.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -174,12 +176,14 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="LedDriver.cpp" />
     <ClCompile Include="LedFileDialog.cpp" />
     <ClCompile Include="LedManualLayout.cpp" />
+    <ClCompile Include="LedProject.cpp" />
     <ClCompile Include="LedReadPhoto.cpp" />
     <ClCompile Include="LedReadVideo.cpp" />
     <ClCompile Include="LedWindow.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControlMode.h" />
     <ClInclude Include="CustomTypes.h" />
     <ClInclude Include="DrawManage.h" />
     <ClInclude Include="IconsFontAwesome5.h" />
@@ -195,6 +199,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="LedDriver.h" />
     <ClInclude Include="LedFileDialog.h" />
     <ClInclude Include="LedManualLayout.h" />
+    <ClInclude Include="LedProject.h" />
     <ClInclude Include="LedReadPhoto.h" />
     <ClInclude Include="LedReadVideo.h" />
     <ClInclude Include="LedWindow.h" />

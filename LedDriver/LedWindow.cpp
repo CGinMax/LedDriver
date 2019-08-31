@@ -1,9 +1,10 @@
 #include "LedWindow.h"
 #include <exception>
 
+#ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
+#endif
 #include "stb_image.h"
-
 
 LedWindow::LedWindow(int width, int hight, const char * title_name)
 	: m_pWindow(NULL), m_iWidth(width), m_iHight(hight), m_title_name(title_name)
