@@ -37,9 +37,10 @@ public:
 	std::string GetVideoFileName();
 	double GetFrameTime();
 	int GetFrameCount();
+	bool IsCanPlay();
 
 public:
-	std::vector<std::list<vdpoint>> m_videoPrimitiveData;
+	std::deque<std::list<vdpoint>> m_videoPrimitiveData;
 	bool m_isInit;
 private:
 	std::string m_fileName;

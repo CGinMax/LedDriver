@@ -116,7 +116,6 @@ void LedDriver::Draw()
 	ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x,viewport->Pos.y+10.0f));
 	ImGui::SetNextWindowSize(viewport->Size);
 	ImGui::SetNextWindowViewport(viewport->ID);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGuiWindowFlags background_dockspace_flag = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
 	//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -143,7 +142,14 @@ void LedDriver::Draw()
 
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.KeysDown[341]) {
-		if (io.MouseWheel == 1) commonData->cicleSize += 3.0f; else if(io.MouseWheel == -1) commonData->cicleSize -= 3.0f;
+		if (io.MouseWheel == 1) {
+			commonData->rowDict += (commonData->rowDict / 15.0f);
+			commonData->colDict += (commonData->colDict / 15.0f);
+		}
+		else if (io.MouseWheel == -1) {
+			commonData->rowDict -= (commonData->rowDict / 15.0f);
+			commonData->colDict -= (commonData->colDict / 15.0f);
+		}
 	}
 
 	
@@ -186,7 +192,6 @@ void LedDriver::Draw()
 	//if (is_show_init_win) InitControlWindow(&is_show_init_win);
 	if (drawInitWindow->IsDrawFinish()) controlMode->ModeSelectWindow(firstx, firsty);
 	ImGui::End();//Background DockSpace End
-	ImGui::PopStyleVar();
 	
 }
 
@@ -338,7 +343,10 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
 	LedReadVideo *video = controlMode->GetVideo();
+	//if (!video->IsCanPlay()) return;
 	if (controlMode->frameIndex < video->m_videoPrimitiveData.size()) {
+		//auto vdrawImage = video->m_videoPrimitiveData.begin();
+		//std::advance(vdrawImage, controlMode->frameIndex);
 		std::list<std::tuple<int, int, unsigned char>> vdrawImage = video->m_videoPrimitiveData[controlMode->frameIndex];
 
 		for (auto liter = vdrawImage.begin(); liter != vdrawImage.end(); liter++) {
@@ -417,10 +425,12 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 		
 		//遍历每一帧画面
 		LedReadVideo *video = controlMode->GetVideo();
+		//for (auto primtIter = video->m_videoPrimitiveData.begin(); primtIter != video->m_videoPrimitiveData.end(); primtIter++) {
 		for (size_t i = 0; i < video->m_videoPrimitiveData.size(); i++) {
-
+			
 			memset(lightData, 0, frameSize);
 			//遍历每一个点，TODO:BinarySearch
+			//for (auto liter = primtIter->begin(); liter != primtIter->end(); liter++) {
 			for (auto liter = video->m_videoPrimitiveData[i].begin(); liter != video->m_videoPrimitiveData[i].end(); liter++) {
 				
 				LedInt2 effLi(std::get<0>(*liter), std::get<1>(*liter));

@@ -199,11 +199,12 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 					readVideo->SetFileName(open_file);
 					loadVideoFileUtf = ToUTF8(open_file);
 					std::thread videoThread(&LedReadVideo::Init, readVideo, m_spData->whMatrix, m_spData->rowDict, m_spData->colDict);
-					//_beginthread(ThreadInitVideo, 0, (void*)this);
+					
 					videoThread.detach();
 					memset(strSuccess, 0, sizeof(strSuccess));
 					sprintf(strSuccess, "Loading");
 				}
+				isStartPlay = false;
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(u8"演示播放")) {
@@ -215,7 +216,7 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 			if (ImGui::Button(u8"关闭演示"))
 				isVideoPlay = false;
 
-			readVideo->m_isInit ? ImGui::Text(loadVideoFileUtf.c_str()) : ImGui::Text(strSuccess);
+			readVideo->IsCanPlay() ? ImGui::Text(loadVideoFileUtf.c_str()) : ImGui::Text(strSuccess);
 			break;
 		}
 
