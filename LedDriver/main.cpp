@@ -115,6 +115,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	style.WindowPadding.x = 2.0f;
 	style.FrameRounding = 8.0f;
 	style.ScrollbarSize = 17.0f;
+	//driver->InitLineImage();
 
 	while (!glfwWindowShouldClose(window.GetLedWindow()))
 	{
@@ -122,10 +123,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		driver->Draw();
-		//driver.InitControlWindow();
-		/*ImGui::Begin("draw texture");
-		DrawImageTest();
-		ImGui::End();*/
 		
 		ImGui::Render();
 		//glClearColor(0, 0, 0, 0);

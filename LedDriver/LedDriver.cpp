@@ -68,7 +68,8 @@ LedDriver::LedDriver(std::shared_ptr<CommonData> pData) :
 	is_show_mode_win(true),
 	is_open_manual(false),
 	is_new_project(false),
-	is_open_project(false)
+	is_open_project(false),
+	is_finishi_image(false)
 {	
 	manualLayout = LedManualLayout::CreateManualLayout();
 	commonData = pData;
@@ -76,6 +77,8 @@ LedDriver::LedDriver(std::shared_ptr<CommonData> pData) :
 	drawInitWindow = new DrawManage(commonData, controlMode);
 	project = new LedProject;
 	//InitializeCriticalSection(&cs);
+
+	//drawInitWindow->InitDataLinePixels();
 }
 
 
@@ -91,8 +94,8 @@ void LedDriver::Draw()
 {
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu(ICON_FA_FILE" 文件")) {
-		ImGui::MenuItem(ICON_FA_FILE_VIDEO" 新建工程", NULL, &is_new_project);
-		ImGui::MenuItem(ICON_FA_FILE_VIDEO" 打开工程", NULL, &is_open_project);
+		ImGui::MenuItem(ICON_FA_FILE_SIGNATURE" 新建工程", NULL, &is_new_project);
+		ImGui::MenuItem(ICON_FA_FOLDER_OPEN" 打开工程", NULL, &is_open_project);
 		ImGui::MenuItem(ICON_FA_SAVE" 保存工程", NULL, &is_save_project);
 		ImGui::EndMenu();
 	}
@@ -192,6 +195,7 @@ void LedDriver::MenuBarControl()
 	if (is_new_project){
 		if (project->NewProject(commonData)) {
 			drawInitWindow->ProjectUpdate();
+			InitLineImage();
 		}
 		is_new_project = false;
 	}
@@ -199,6 +203,7 @@ void LedDriver::MenuBarControl()
 		if (project->OpenProject(commonData)) {
 			drawInitWindow->ProjectUpdate();
 			drawInitWindow->isInitVertex = true;
+			InitLineImage();
 		}
 		is_open_project = false;
 	}
@@ -456,6 +461,15 @@ void LedDriver::DrawBackgroundImage(ImDrawList *draw_list, ImVec2 &left_up, ImVe
 {
 	unsigned int texture = controlMode->GetImageTexture();
 	draw_list->AddImage((ImTextureID)texture, left_up, right_down);
+}
+
+void LedDriver::InitLineImage()
+{
+	//绘制连线图
+	if (!is_finishi_image) {
+		drawInitWindow->InitDataLinePixels();
+		is_finishi_image = true;
+	}
 }
 
 void LedDriver::OpenSerialPort()

@@ -5,6 +5,7 @@
 #include "ControlMode.h"
 #include <stack>
 #include <list>
+#include <mutex>
 
 class DrawManage
 {
@@ -18,6 +19,7 @@ public:
 	std::list<LedInt2> GetRoute();
 	void ProjectUpdate();
 	bool IsDrawFinish();
+	void InitDataLinePixels();
 public:
 	bool isInitVertex;
 private:
@@ -29,9 +31,13 @@ private:
 	const char *item_current;
 	bool isConcern;
 	float zoomProportion;
+	unsigned int dataLineTexture[16];
+	unsigned char *dataLinePixels[16];
 	LedManualLayout *manual;
 	ControlMode *m_controlMode;
 	std::shared_ptr<CommonData> m_commonData;
+	std::mutex m_mutex;
+	
 
 private:
 	void InitMode();

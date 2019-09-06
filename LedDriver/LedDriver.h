@@ -29,7 +29,7 @@ public:
 	void ThreadSaveManual();
 	void ThreadSaveVideo();
 	void DrawBackgroundImage(ImDrawList *draw_list, ImVec2 &left_up, ImVec2 &right_down);
-
+	void InitLineImage();
 
 private:
 	//float draw_area_size;
@@ -47,6 +47,7 @@ private:
 	bool is_open_manual;
 	bool is_show_init_win;
 	bool is_show_mode_win;
+	bool is_finishi_image;
 
 	LedManualLayout *manualLayout;
 	std::shared_ptr<CommonData> commonData;

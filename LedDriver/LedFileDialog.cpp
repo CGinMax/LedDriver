@@ -78,7 +78,7 @@ std::string VideoFileDialog::SelectFileNameDialog()
 	OPENFILENAME ofn = { 0 };
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = FindWindow(NULL, TEXT("Led Driver"));
-	ofn.lpstrFilter = TEXT("gif或视频文件(*.gif,*.avi,*.mp4,*.swf,*.flv,*.wmv)\0*.gif;*.avi;*.mp4;*.swf;*.flv;*.wmv\0所有文件\0*.*\0\0");
+	ofn.lpstrFilter = TEXT("gif或视频文件(*.gif,*.avi,*.mp4,*.wmv)\0*.gif;*.avi;*.mp4;*.wmv\0所有文件\0*.*\0\0");
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFile = Filename;//接收返回的文件名，注意第一个字符需要为NULL
 	ofn.nMaxFile = sizeof(Filename);//缓冲区长度

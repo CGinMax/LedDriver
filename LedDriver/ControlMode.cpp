@@ -76,8 +76,7 @@ ControlMode::~ControlMode()
 {
 	delete readVideo;
 	readVideo = nullptr;
-	delete backgroundImagePixels;
-	backgroundImagePixels = nullptr;
+	delete []backgroundImagePixels;
 	sPage.clear();
 }
 
@@ -87,7 +86,7 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 	firstPointy = _y;
 	if (ImGui::Begin(ICON_FA_BRAILLE" 点阵操作"))
 	{
-		ImGui::Combo(u8"模式选择", &nCurrentMode, u8"\uf4fe"" 手动选择模式\0" ICON_FA_PHOTO_VIDEO" 图片模式\0" u8"\uf03d"" 动态模式\0\0");
+		ImGui::Combo(u8"模式选择", &nCurrentMode, ICON_FA_USER_COG" 手动选择模式\0" ICON_FA_VIDEO" 动态模式\0\0");
 		switch (nCurrentMode)
 		{
 		case 0:

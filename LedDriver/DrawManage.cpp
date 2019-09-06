@@ -2,6 +2,10 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome5.h"
+#include <gl/GL.h>
+#include <gl/GLU.h>
+#include <Psapi.h>
+#pragma comment(lib, "psapi.lib")
 
 DrawManage::DrawManage(std::shared_ptr<CommonData> commonData, ControlMode *controlMode) :
 	row_dist(0),
@@ -17,6 +21,9 @@ DrawManage::DrawManage(std::shared_ptr<CommonData> commonData, ControlMode *cont
 {
 	inputSize[0] = inputSize[1] = 0;
 	manual = LedManualLayout::CreateManualLayout();
+	glGenTextures(sizeof(dataLineTexture)/sizeof(unsigned int), dataLineTexture);
+
+	
 }
 
 
@@ -27,6 +34,11 @@ DrawManage::DrawManage()
 DrawManage::~DrawManage()
 {
 	m_controlMode = nullptr;
+	for (int i = 0; i < 16; i++) {
+		delete []dataLinePixels[i];
+	
+	}
+	glDeleteTextures(sizeof(dataLineTexture) / sizeof(unsigned int), dataLineTexture);
 }
 
 void DrawManage::InitControlWindow(float x, float y, float c_size)
@@ -93,9 +105,13 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 		isInitVertex = false;
 		this->InitMode();
 	}
-	ImGui::SameLine();
-	if (isConcern)
+	if (isConcern) {
+		ImGui::SameLine();
 		ImGui::Text(u8"设置完成");
+	}
+
+	if (m_commonData->comboSelect != 0 && m_commonData->comboSelect != 17)
+	ImGui::Image((ImTextureID)dataLineTexture[m_commonData->comboSelect-1], ImVec2(100.0f, 100.0f));
 
 
 	ImGui::End();
@@ -200,6 +216,43 @@ void DrawManage::ProjectUpdate()
 bool DrawManage::IsDrawFinish()
 {
 	return isConcern;
+}
+
+void DrawManage::InitDataLinePixels()
+{
+	char runPath[512], runProcess[512];
+	memset(runPath, '\0', sizeof(runPath));
+	GetModuleFileName(NULL, runProcess, 512);
+	memcpy(runPath, runProcess, strlen(runProcess) - 14);
+	char aFileName[512];
+	
+	std::vector<std::string> imageName{".\\resources\\1.png", ".\\resources\\2.png" , ".\\resources\\3.png" , ".\\resources\\4.png" , ".\\resources\\5.png" , ".\\resources\\6.png" , ".\\resources\\7.png" ,".\\resources\\8.png",
+		".\\resources\\9.png", ".\\resources\\10.png" , ".\\resources\\11.png" , ".\\resources\\12.png" , ".\\resources\\13.png" , ".\\resources\\14.png" , ".\\resources\\15.png" ,".\\resources\\16.png" };
+	
+	for (int i = 0; i < 16; i++) {
+
+		sprintf(aFileName, "%s\\resources\\%d.png", runPath, i+1);
+
+		cv::Mat bgImage = cv::imread(aFileName, cv::IMREAD_UNCHANGED);
+		cv::resize(bgImage, bgImage, cv::Size(50, 50));
+		
+		dataLinePixels[i] = new unsigned char[bgImage.cols * bgImage.rows * bgImage.channels()];
+
+		memcpy(dataLinePixels[i], bgImage.data, bgImage.cols * bgImage.rows * bgImage.channels() * sizeof(unsigned char));
+
+		
+		glBindTexture(GL_TEXTURE_2D, dataLineTexture[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		if (dataLinePixels[i] != nullptr) {
+			if (bgImage.channels() == 3)
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, bgImage.cols, bgImage.rows, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, (void*)dataLinePixels[i]);
+			if (bgImage.channels() == 4)
+				glTexImage2D(GL_TEXTURE_2D, 0, 4, bgImage.cols, bgImage.rows, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (void*)dataLinePixels[i]);
+		}
+	}
 }
 
 /* 左右方向移动*/
