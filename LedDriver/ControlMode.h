@@ -22,6 +22,7 @@ private:
 	//std::string SelectFileNameDialog(std::string &fileType);
 	std::string SelectFile(LedFileDialog *openFile);
 	std::string ToUTF8(const std::string str);
+	void InitDefaultEffect();
 public:
 	int nCurrentMode; 
 	int nPageCount;
@@ -46,5 +47,8 @@ private:
 	std::string loadBackgroundImageFileUtf;
 	std::string loadVideoFileUtf;
 	Led::Image backgroundImageArg;
+	const char* effectNames[7] = { u8"球运动", u8"扩散跳球", u8"X运动", u8"左向右拉幕", u8"上向下拉幕", u8"正方形扩散", u8"渐变" };
+	std::vector<std::string> effectPath;
+	
 };
 

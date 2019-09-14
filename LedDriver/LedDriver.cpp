@@ -269,7 +269,7 @@ void LedDriver::MenuBarControl()
 			}
 			else if (controlMode->nCurrentMode == 1) {
 				std::thread save_video(&LedDriver::ThreadSaveVideo, this);
-				save_video.join();
+				save_video.detach();
 			}
 		} while (0);
 		

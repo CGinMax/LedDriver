@@ -8,6 +8,8 @@
 #include <thread>
 #include <gl/GL.h>
 #include <gl/GLU.h>
+#include <Psapi.h>
+#pragma comment(lib, "psapi.lib")
 
 std::string ControlMode::ToUTF8(const std::string str)
 {
@@ -31,6 +33,21 @@ std::string ControlMode::ToUTF8(const std::string str)
 	delete[] utf8_buf;
 
 	return outstr;
+}
+
+//获取软件运行的路径，并加上效果文件的文件名
+void ControlMode::InitDefaultEffect()
+{
+	char runPath[512], runProcess[512];
+	memset(runPath, '\0', sizeof(runPath));
+	GetModuleFileName(NULL, runProcess, 512);
+	memcpy(runPath, runProcess, strlen(runProcess) - 14);
+
+	std::vector<std::string> shortPath = { "\\Effect\\Circle.gif", "\\Effect\\Jump Circle.gif", "\\Effect\\Cross.gif", "\\Effect\\LeftToRight.gif", "\\Effect\\UpToDown.gif", "\\Effect\\Square entry.gif", "\\Effect\\Dawn.gif" };
+	for (int i = 0; i < static_cast<int>(shortPath.size()); i++) {
+		std::string aFileName = runPath + shortPath[i];
+		effectPath.push_back(aFileName);
+	}
 }
 
 ControlMode::ControlMode() : 
@@ -69,6 +86,7 @@ ControlMode::ControlMode(std::shared_ptr<CommonData> spData) :
 	sPage.clear();
 	memset(strSuccess, 0, sizeof(strSuccess));
 	readVideo = new LedReadVideo();
+	InitDefaultEffect();
 }
 
 
@@ -200,11 +218,11 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 					loadVideoFileUtf = ToUTF8(open_file);
 					std::thread videoThread(&LedReadVideo::Init, readVideo, m_spData->whMatrix, m_spData->rowDict, m_spData->colDict);
 					
-					videoThread.join();
+					videoThread.detach();
 					memset(strSuccess, 0, sizeof(strSuccess));
 					sprintf(strSuccess, "Loading");
+					isVideoPlay = false;
 				}
-				isVideoPlay = false;
 				isStartPlay = false;
 			}
 			ImGui::SameLine();
@@ -217,7 +235,25 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 			if (ImGui::Button(u8"关闭演示"))
 				isVideoPlay = false;
 
+			//选择默认效果
+			if (ImGui::Button(u8"默认效果"))
+				ImGui::OpenPopup("effect_popup");
+			if (ImGui::BeginPopup("effect_popup")) {
+				for (int i = 0; i < IM_ARRAYSIZE(effectNames); i++) {
 
+					if (ImGui::Selectable(effectNames[i])) {
+						readVideo->SetFileName(effectPath[i]);
+						loadVideoFileUtf = ToUTF8(effectPath[i]);
+						std::thread videoThread(&LedReadVideo::Init, readVideo, m_spData->whMatrix, m_spData->rowDict, m_spData->colDict);
+						videoThread.join();
+						//立马播放
+						isVideoPlay = true;
+						dbNowTime = ImGui::GetTime();
+						frameIndex = 0;
+					}
+				}
+				ImGui::EndPopup();
+			}
 			readVideo->IsCanPlay() ? ImGui::Text(loadVideoFileUtf.c_str()) : ImGui::Text(strSuccess);
 			break;
 		}

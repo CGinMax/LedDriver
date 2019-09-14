@@ -227,12 +227,10 @@ void DrawManage::InitDataLinePixels()
 	memcpy(runPath, runProcess, strlen(runProcess) - 14);
 	char aFileName[512];
 	
-	std::vector<std::string> imageName{".\\resources\\1.png", ".\\resources\\2.png" , ".\\resources\\3.png" , ".\\resources\\4.png" , ".\\resources\\5.png" , ".\\resources\\6.png" , ".\\resources\\7.png" ,".\\resources\\8.png",
-		".\\resources\\9.png", ".\\resources\\10.png" , ".\\resources\\11.png" , ".\\resources\\12.png" , ".\\resources\\13.png" , ".\\resources\\14.png" , ".\\resources\\15.png" ,".\\resources\\16.png" };
 	
 	for (int i = 0; i < 16; i++) {
 
-		sprintf(aFileName, "%s\\resources\\%d.png", runPath, i+1);
+		sprintf(aFileName, "%s\\Resources\\%d.png", runPath, i+1);
 
 		cv::Mat bgImage = cv::imread(aFileName, cv::IMREAD_UNCHANGED);
 		cv::resize(bgImage, bgImage, cv::Size(50, 50));
