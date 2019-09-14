@@ -77,36 +77,29 @@ void LedReadVideo::Init(int area[2], float row_dict, float col_dict)
 		//m_videoFrameList.clear();
 		m_videoPrimitiveData.clear();
 	}
+	m_frameCount = 0;
 	cv::Mat videoFrame;
 	if (!m_video.open(m_fileName)) return;
 	int frame_width = area[0] * int(row_dict);
 	int frame_height = area[1] * int(col_dict);
+	m_frameTime = m_video.get(CV_CAP_PROP_FPS);
 	m_frameTime = 1000.0 / m_video.get(CV_CAP_PROP_FPS);
-	m_frameCount = (int)m_video.get(CV_CAP_PROP_FRAME_COUNT);
+	//m_frameCount = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
+	
 	while (m_video.read(videoFrame)) {
-		//m_videoFrameList.push_back(Resize2Single(videoFrame, frame_width, frame_height));
-		/*std::vector<Mat> single_channel;
-		resize(videoFrame, videoFrame, Size(area[0] * 16, area[1] * 16));
-		split(videoFrame, single_channel);
-
-		videoFrame.channels() == 4 ? m_videoFrameList.push_back(single_channel.at(3)) : m_videoFrameList.push_back(single_channel.at(0));
-		*/
+		
+		++m_frameCount;
 		std::lock_guard<std::mutex> thread_lock(m_mutex);
 		Mat resizeFrame = Resize2Single(videoFrame, frame_width, frame_height).clone();
 		std::list<vdpoint> framePriDt = MakePrimitiveInfo(resizeFrame, area[0], area[1]);
 		m_videoPrimitiveData.push_back(framePriDt);
 	}
 	
-	m_frameCount = (int)m_video.get(CV_CAP_PROP_FRAME_COUNT);
+	//m_frameCount = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
+	if (m_video.get(CV_CAP_PROP_FRAME_COUNT) > 0) m_frameCount = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
 	m_video.release();
 
-	/*std::list<cv::Mat>::iterator frameiter = m_videoFrameList.begin();
-	while (frameiter != m_videoFrameList.end()) {
-		std::list<vdpoint> framePriDt = MakePrimitiveInfo(*frameiter, area[0], area[1]);
-		m_videoPrimitiveData.push_back(framePriDt);
-		frameiter++;
-	}*/
-	//m_videoPrimitiveData.shrink_to_fit();
+	
 	m_isInit = true;
 }
 

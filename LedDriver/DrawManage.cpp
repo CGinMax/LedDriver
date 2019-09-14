@@ -50,6 +50,7 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 		ImGui::End();
 		return;
 	}
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 6));
 	ImGui::InputInt2(u8"长X宽", inputSize);
 	ImGui::InputFloat(u8"行间距", &row_dist, 0.0f, 0.0f, 2);
 	ImGui::InputFloat(u8"列间距", &col_dist, 0.0f, 0.0f, 2);
@@ -113,7 +114,7 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 	if (m_commonData->comboSelect != 0 && m_commonData->comboSelect != 17)
 	ImGui::Image((ImTextureID)dataLineTexture[m_commonData->comboSelect-1], ImVec2(100.0f, 100.0f));
 
-
+	ImGui::PopStyleVar();
 	ImGui::End();
 }
 

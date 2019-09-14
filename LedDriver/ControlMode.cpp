@@ -200,10 +200,11 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 					loadVideoFileUtf = ToUTF8(open_file);
 					std::thread videoThread(&LedReadVideo::Init, readVideo, m_spData->whMatrix, m_spData->rowDict, m_spData->colDict);
 					
-					videoThread.detach();
+					videoThread.join();
 					memset(strSuccess, 0, sizeof(strSuccess));
 					sprintf(strSuccess, "Loading");
 				}
+				isVideoPlay = false;
 				isStartPlay = false;
 			}
 			ImGui::SameLine();
@@ -215,6 +216,7 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 			ImGui::SameLine();
 			if (ImGui::Button(u8"¹Ø±ÕÑÝÊ¾"))
 				isVideoPlay = false;
+
 
 			readVideo->IsCanPlay() ? ImGui::Text(loadVideoFileUtf.c_str()) : ImGui::Text(strSuccess);
 			break;
@@ -236,7 +238,7 @@ void ControlMode::ManualReadImage(std::string fileName)
 		glDeleteTextures(1, &imageTexture);
 	}
 	cv::Mat bgImage = cv::imread(fileName, cv::IMREAD_UNCHANGED);
-	cv::resize(bgImage, bgImage, cv::Size(m_spData->whMatrix[0] * m_spData->rowDict, m_spData->whMatrix[1] * m_spData->colDict));
+	cv::resize(bgImage, bgImage, cv::Size(m_spData->whMatrix[0] * static_cast<int>(m_spData->rowDict), m_spData->whMatrix[1] * static_cast<int>(m_spData->colDict)));
 	backgroundImageArg.width = bgImage.cols;
 	backgroundImageArg.height = bgImage.rows;
 	backgroundImageArg.channels = bgImage.channels();

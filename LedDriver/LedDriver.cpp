@@ -69,7 +69,8 @@ LedDriver::LedDriver(std::shared_ptr<CommonData> pData) :
 	is_open_manual(false),
 	is_new_project(false),
 	is_open_project(false),
-	is_finishi_image(false)
+	is_finishi_image(false),
+	is_save_file_done(true)
 {	
 	manualLayout = LedManualLayout::CreateManualLayout();
 	commonData = pData;
@@ -180,12 +181,34 @@ void LedDriver::Draw()
 	if (!controlMode->isStartPlay && !controlMode->sPage.empty() && controlMode->nCurrentMode==0) {
 		controlMode->sPage[controlMode->nWhichPage].DisplayCanvas(firstx, firsty, commonData->rowDict, commonData->colDict,commonData->cicleSize, draw_list);
 	}
+
+	if (!controlMode->isVideoPlay && controlMode->nCurrentMode == 1) {
+		for (int i = 0; i < commonData->whMatrix[1]; i++) {
+			for (int j = 0; j < commonData->whMatrix[0]; j++) {
+				draw_list->AddCircle(
+					ImVec2(firstx + j * commonData->rowDict, firsty + i * commonData->colDict), commonData->cicleSize*0.5f, IM_COL32_WHITE, 32, 2.0f);
+
+			}
+		}
+	}
+
 	if (controlMode->isStartPlay)
 		SecondSetPaintWindow(draw_list);
 
 	if (controlMode->isVideoPlay)
 		ThridSetPaintWindow(draw_list);
 
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(100, 100));
+	if (!is_save_file_done) {
+		ImGui::OpenPopup("Information");
+		if (ImGui::BeginPopupModal("Information", NULL)) {
+			ImGui::Indent(30.0f);
+			ImGui::Text(u8"文件保存中");
+			ImGui::EndPopup();
+		}
+	}
+	ImGui::PopStyleVar();
+	
 	ImGui::End();//Draw window End
 	
 	if (project->isStartProject) drawInitWindow->InitControlWindow(firstx, firsty, commonData->cicleSize);
@@ -242,11 +265,11 @@ void LedDriver::MenuBarControl()
 			if (saveFileName.empty()) break;
 			if (controlMode->nCurrentMode == 0) {
 				std::thread save_manual(&LedDriver::ThreadSaveManual, this);
-				save_manual.detach();
+				save_manual.join();
 			}
 			else if (controlMode->nCurrentMode == 1) {
 				std::thread save_video(&LedDriver::ThreadSaveVideo, this);
-				save_video.detach();
+				save_video.join();
 			}
 		} while (0);
 		
@@ -366,6 +389,8 @@ void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime)
 {
 	//EnterCriticalSection(&cs);
+	is_save_file_done = false;
+	
 	std::lock_guard<std::mutex> threadLock(m_mutex);
 	FILE *out_to_file;
 	unsigned char *lightData;
@@ -445,7 +470,7 @@ void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize
 	}
 	free(lightData);
 	fclose(out_to_file);
-	//LeaveCriticalSection(&cs);
+	is_save_file_done = true;
 }
 
 

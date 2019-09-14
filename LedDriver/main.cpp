@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	style.Colors[ImGuiCol_TabActive] = ImColor(48, 49, 51, 249);
 	style.Colors[ImGuiCol_TabHovered] = ImColor(25, 185, 238, 204);
 	style.WindowPadding.x = 2.0f;
-	style.FrameRounding = 8.0f;
+	//style.FrameRounding = 8.0f;
 	style.ScrollbarSize = 17.0f;
 	//driver->InitLineImage();
 

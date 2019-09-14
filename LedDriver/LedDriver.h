@@ -49,13 +49,14 @@ private:
 	bool is_show_mode_win;
 	bool is_finishi_image;
 
+	bool is_save_file_done;
+
 	LedManualLayout *manualLayout;
 	std::shared_ptr<CommonData> commonData;
 	DrawManage *drawInitWindow;
 	ControlMode *controlMode;
 	LedProject *project;
 	std::mutex m_mutex;
-	CRITICAL_SECTION cs;
 
 	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);
 	void OpenSerialPort();
