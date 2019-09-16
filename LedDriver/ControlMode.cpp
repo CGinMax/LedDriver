@@ -11,6 +11,7 @@
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
 
+
 std::string ControlMode::ToUTF8(const std::string str)
 {
 	int nw_len = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
@@ -86,6 +87,7 @@ ControlMode::ControlMode(std::shared_ptr<CommonData> spData) :
 	sPage.clear();
 	memset(strSuccess, 0, sizeof(strSuccess));
 	readVideo = new LedReadVideo();
+	cm_language = LanguageSetting::GetLanguageInstance();
 	InitDefaultEffect();
 }
 
@@ -102,23 +104,27 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 {
 	firstPointx = _x;
 	firstPointy = _y;
-	if (ImGui::Begin(ICON_FA_BRAILLE" 点阵操作"))
+	if (ImGui::Begin(cm_language->m_controlWindowTitle.c_str()))
 	{
-		ImGui::Combo(u8"模式选择", &nCurrentMode, ICON_FA_USER_COG" 手动选择模式\0" ICON_FA_VIDEO" 动态模式\0\0");
+		//std::string comboContent = cm_language->m_manualMode + cm_language->m_dynamicMode;
+		if(cm_language->m_nowLanguage.compare("Chinese") == 0)
+			ImGui::Combo(cm_language->m_modeSelect.c_str(), &nCurrentMode,  ICON_FA_USER_COG" 手动选择模式\0" ICON_FA_VIDEO" 动态模式\0\0");
+		else if (cm_language->m_nowLanguage.compare("English") == 0)
+			ImGui::Combo(cm_language->m_modeSelect.c_str(), &nCurrentMode, ICON_FA_USER_COG" Manual Mode\0" ICON_FA_VIDEO" Dynamic Mode\0\0");
 		switch (nCurrentMode)
 		{
 		case 0:
-			if (ImGui::Button(u8"载入背景图片")) {
+			if (ImGui::Button(cm_language->m_loadBackground.c_str())) {
 				std::string open_file = this->SelectFile(new ImageFileDialog);
 				
 				if (!open_file.empty()) { loadBackgroundImageFileUtf = ToUTF8(open_file); ManualReadImage(open_file); } 
 			}
 			ImGui::SameLine();
-			ImGui::Checkbox(u8"显示背景图片", &isBackgroundShow);
+			ImGui::Checkbox(cm_language->m_showBackground.c_str(), &isBackgroundShow);
 			ImGui::SameLine();
 			ImGui::Text(loadBackgroundImageFileUtf.c_str());
 			/*添加一页选项页*/
-			if (ImGui::Button(u8"添加区间")) {
+			if (ImGui::Button(cm_language->m_addWay.c_str())) {
 				nPageCount++;
 				InstancePageData singlePage;
 				char nbuf[8];
@@ -141,7 +147,7 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 				if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
 					nWhichPage = i;
 
-					if (ImGui::Button(u8"导入内容")) {
+					if (ImGui::Button(cm_language->m_importImage.c_str())) {
 						std::string open_file = this->SelectFile(new ImageFileDialog);
 						if (!open_file.empty()) {
 							sPage[i].readImage.SetFileName(open_file);
@@ -154,21 +160,21 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 						}
 					}
 
-					ImGui::Checkbox(u8"选点", &(sPage[i].bCheckMouse)); ImGui::SameLine();
-					if (ImGui::Checkbox(u8"渐变:暗到亮", &(sPage[i].bGradientNone2Fill))) {
+					ImGui::Checkbox(cm_language->m_selectPoint.c_str(), &(sPage[i].bCheckMouse)); ImGui::SameLine();
+					if (ImGui::Checkbox(cm_language->m_gradient1.c_str(), &(sPage[i].bGradientNone2Fill))) {
 						sPage[i].bGradientFill2None = false;
 						sPage[i].bModify = true;
 					}
 					ImGui::SameLine();
-					if (ImGui::Checkbox(u8"渐变:亮到暗", &(sPage[i].bGradientFill2None))) {
+					if (ImGui::Checkbox(cm_language->m_gradient2.c_str(), &(sPage[i].bGradientFill2None))) {
 						sPage[i].bGradientNone2Fill = false;
 						sPage[i].bModify = true;
 					}
 
-					if (ImGui::InputFloat(u8"点亮时间", &(sPage[i].fTime), 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal)) {
+					if (ImGui::InputFloat(cm_language->m_showTime.c_str(), &(sPage[i].fTime), 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal)) {
 						sPage[i].bModify = true;
 					}
-					if (ImGui::Button(u8"确定")) {
+					if (ImGui::Button(cm_language->m_wayConcern.c_str())) {
 						if (!sPage[i].vEffectPoints.empty())
 							sPage[i].vEffectPoints.clear();
 
@@ -198,20 +204,20 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 			ImGui::Separator();
 			ImGui::Unindent(20.0f);
 
-			if (ImGui::Button(u8"演示")) {
+			if (ImGui::Button(cm_language->m_startPlay.c_str())) {
 				//初始化播放的第一个时刻的状态
 				sPage[0].nTickTime = ImGui::GetTime();
 				nIntervalNum = 0;
 				isStartPlay = true;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button(u8"关闭演示")) isStartPlay = false;
+			if (ImGui::Button(cm_language->m_stopPlay.c_str())) isStartPlay = false;
 
 			break;
 
 		case 1:
 			
-			if (ImGui::Button(u8"导入")) {
+			if (ImGui::Button(cm_language->m_loadVideo.c_str())) {
 				std::string open_file = this->SelectFile(new VideoFileDialog);
 				if (!open_file.empty()) {
 					readVideo->SetFileName(open_file);
@@ -226,17 +232,17 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 				isStartPlay = false;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button(u8"演示播放")) {
+			if (ImGui::Button(cm_language->m_startPlay.c_str())) {
 				isVideoPlay = true;
 				dbNowTime = ImGui::GetTime();
 				frameIndex = 0;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button(u8"关闭演示"))
+			if (ImGui::Button(cm_language->m_stopPlay.c_str()))
 				isVideoPlay = false;
 
 			//选择默认效果
-			if (ImGui::Button(u8"默认效果"))
+			if (ImGui::Button(cm_language->m_defaultEffect.c_str()))
 				ImGui::OpenPopup("effect_popup");
 			if (ImGui::BeginPopup("effect_popup")) {
 				for (int i = 0; i < IM_ARRAYSIZE(effectNames); i++) {

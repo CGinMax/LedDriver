@@ -14,6 +14,7 @@
 #include "ControlMode.h"
 #include "DrawManage.h"
 #include "LedProject.h"
+#include "LanguageSetting.h"
 
 class LedDriver
 {
@@ -42,6 +43,8 @@ private:
 	bool is_save_project;
 	bool is_save;
 	bool is_open_serial;
+	bool is_english;
+	bool is_chinese;
 	//
 	std::string saveFileName;
 	bool is_open_manual;
@@ -56,6 +59,7 @@ private:
 	DrawManage *drawInitWindow;
 	ControlMode *controlMode;
 	LedProject *project;
+	LanguageSetting *language;
 	std::mutex m_mutex;
 
 	void SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime);

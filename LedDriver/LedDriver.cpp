@@ -70,16 +70,28 @@ LedDriver::LedDriver(std::shared_ptr<CommonData> pData) :
 	is_new_project(false),
 	is_open_project(false),
 	is_finishi_image(false),
-	is_save_file_done(true)
+	is_save_file_done(true),
+	is_english(false),
+	is_chinese(false)
 {	
 	manualLayout = LedManualLayout::CreateManualLayout();
 	commonData = pData;
 	controlMode = new ControlMode(commonData);
 	drawInitWindow = new DrawManage(commonData, controlMode);
 	project = new LedProject;
+	language = LanguageSetting::GetLanguageInstance();
 	//InitializeCriticalSection(&cs);
 
 	//drawInitWindow->InitDataLinePixels();
+	/*std::ifstream freadlanguage;
+	std::string strlanguage;
+	freadlanguage.open("Language\\config.data");
+	freadlanguage >> strlanguage;
+	if (strlanguage.compare("Chinese") == 0)
+		is_chinese = true;
+	else if (strlanguage.compare("English") == 0)
+		is_english = true;
+	freadlanguage.close();*/
 }
 
 
@@ -94,19 +106,24 @@ LedDriver::~LedDriver()
 void LedDriver::Draw()
 {
 	ImGui::BeginMainMenuBar();
-	if (ImGui::BeginMenu(ICON_FA_FILE" 文件")) {
-		ImGui::MenuItem(ICON_FA_FILE_SIGNATURE" 新建工程", NULL, &is_new_project);
-		ImGui::MenuItem(ICON_FA_FOLDER_OPEN" 打开工程", NULL, &is_open_project);
-		ImGui::MenuItem(ICON_FA_SAVE" 保存工程", NULL, &is_save_project);
+	if (ImGui::BeginMenu(language->m_files.c_str())) {
+		ImGui::MenuItem(language->m_newProject.c_str(), NULL, &is_new_project);
+		ImGui::MenuItem(language->m_openProject.c_str(), NULL, &is_open_project);
+		ImGui::MenuItem(language->m_saveProject.c_str(), NULL, &is_save_project);
 		ImGui::EndMenu();
 	}
-	if (ImGui::BeginMenu(ICON_FA_TOOLS" 选项")) {
-		ImGui::MenuItem(ICON_FA_SAVE" 保存数据", NULL, &is_save);
-		ImGui::MenuItem(ICON_FA_SD_CARD" 打开串口", NULL, &is_open_serial);
+	if (ImGui::BeginMenu(language->m_option.c_str())) {
+		ImGui::MenuItem(language->m_exportData.c_str(), NULL, &is_save);
+		ImGui::MenuItem(language->m_serialPort.c_str(), NULL, &is_open_serial);
+		if (ImGui::BeginMenu(language->m_languageOption.c_str())) {
+			ImGui::MenuItem(language->m_language1.c_str(), NULL, &is_chinese);
+			ImGui::MenuItem(language->m_language2.c_str(), NULL, &is_english);
+			ImGui::EndMenu();
+		}
 		ImGui::EndMenu();
 	}
-	if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE" 窗口")) {
-		ImGui::MenuItem(ICON_FA_HAND_PAPER" 手工布局", NULL, &is_open_manual);
+	if (ImGui::BeginMenu(language->m_windowOption.c_str())) {
+		ImGui::MenuItem(language->m_manual.c_str(), NULL, &is_open_manual);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
@@ -119,12 +136,10 @@ void LedDriver::Draw()
 	ImGui::SetNextWindowViewport(viewport->ID);
 	ImGuiWindowFlags background_dockspace_flag = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-	//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	ImGui::Begin("Background DockSpace", false, background_dockspace_flag);
-	//ImGui::PopStyleVar();
 
 	ImGuiID dockspace_id = ImGui::GetID("Main Dockspace");
-	if (ImGui::DockBuilderGetNode(dockspace_id) == NULL)
+	if (ImGui::DockBuilderGetNode(dockspace_id) == NULL || language->is_change_language)
 	{
 		ImGui::DockBuilderRemoveNode(dockspace_id);
 		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); 
@@ -134,10 +149,11 @@ void LedDriver::Draw()
 		ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.35f, NULL, &dock_main_id);
 		ImGuiID dock_id_right_bottom = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.60f, NULL, &dock_id_right);
 
-		ImGui::DockBuilderDockWindow(ICON_FA_PENCIL_RULER" 显示窗口", dock_main_id);
-		ImGui::DockBuilderDockWindow(ICON_FA_SLIDERS_H" 初始化设置", dock_id_right);
-		ImGui::DockBuilderDockWindow(ICON_FA_BRAILLE" 点阵操作", dock_id_right_bottom);
+		ImGui::DockBuilderDockWindow(language->m_drawMainTitle.c_str(), dock_main_id);
+		ImGui::DockBuilderDockWindow(language->m_initWindowTitle.c_str(), dock_id_right);
+		ImGui::DockBuilderDockWindow(language->m_controlWindowTitle.c_str(), dock_id_right_bottom);
 		ImGui::DockBuilderFinish(dockspace_id);
+		language->is_change_language = false;
 	}
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
@@ -154,9 +170,9 @@ void LedDriver::Draw()
 	}
 
 	
-	ImGui::Begin(ICON_FA_PENCIL_RULER" 显示窗口", false, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::Begin(language->m_drawMainTitle.c_str(), false, ImGuiWindowFlags_HorizontalScrollbar);
 	ImDrawList *draw_list = ImGui::GetWindowDrawList();
-	ImGui::Text(u8"显示区域"); ImGui::SameLine();
+	ImGui::Text(language->m_drawArea.c_str()); ImGui::SameLine();
 	ImGui::Text("FPS:%f", io.Framerate);
 	/* Text下面的光标位置*/
 	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
@@ -276,6 +292,16 @@ void LedDriver::MenuBarControl()
 		is_save = false;
 	}
 	if (is_open_serial) { OpenSerialPort(); is_open_serial = false; } //打开串口
+	if (is_chinese) {
+		language->SetCurrentLanguage("Chinese");
+		is_chinese = false;
+		language->is_change_language = true;
+	}
+	if (is_english) {
+		language->SetCurrentLanguage("English");
+		is_english = false;
+		language->is_change_language = true;
+	}
 }
 
 

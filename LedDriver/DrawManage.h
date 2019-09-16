@@ -6,6 +6,7 @@
 #include <stack>
 #include <list>
 #include <mutex>
+#include "LanguageSetting.h"
 
 class DrawManage
 {
@@ -37,7 +38,7 @@ private:
 	ControlMode *m_controlMode;
 	std::shared_ptr<CommonData> m_commonData;
 	std::mutex m_mutex;
-	
+	LanguageSetting *dm_language;
 
 private:
 	void InitMode();

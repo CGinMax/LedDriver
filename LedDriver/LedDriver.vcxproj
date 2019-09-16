@@ -173,6 +173,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="imgui_impl_opengl2.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="InstancePageData.cpp" />
+    <ClCompile Include="LanguageSetting.cpp" />
     <ClCompile Include="LedDriver.cpp" />
     <ClCompile Include="LedFileDialog.cpp" />
     <ClCompile Include="LedManualLayout.cpp" />
@@ -196,6 +197,7 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="InstancePageData.h" />
+    <ClInclude Include="LanguageSetting.h" />
     <ClInclude Include="LedDriver.h" />
     <ClInclude Include="LedFileDialog.h" />
     <ClInclude Include="LedManualLayout.h" />
@@ -203,6 +205,21 @@ opencv_videostab320.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="LedReadPhoto.h" />
     <ClInclude Include="LedReadVideo.h" />
     <ClInclude Include="LedWindow.h" />
+    <ClInclude Include="rapidjson\allocators.h" />
+    <ClInclude Include="rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="rapidjson\document.h" />
+    <ClInclude Include="rapidjson\encodedstream.h" />
+    <ClInclude Include="rapidjson\encodings.h" />
+    <ClInclude Include="rapidjson\filereadstream.h" />
+    <ClInclude Include="rapidjson\fwd.h" />
+    <ClInclude Include="rapidjson\istreamwrapper.h" />
+    <ClInclude Include="rapidjson\memorybuffer.h" />
+    <ClInclude Include="rapidjson\memorystream.h" />
+    <ClInclude Include="rapidjson\pointer.h" />
+    <ClInclude Include="rapidjson\rapidjson.h" />
+    <ClInclude Include="rapidjson\reader.h" />
+    <ClInclude Include="rapidjson\stream.h" />
+    <ClInclude Include="rapidjson\stringbuffer.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

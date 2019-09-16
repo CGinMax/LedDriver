@@ -21,9 +21,9 @@ DrawManage::DrawManage(std::shared_ptr<CommonData> commonData, ControlMode *cont
 {
 	inputSize[0] = inputSize[1] = 0;
 	manual = LedManualLayout::CreateManualLayout();
+	dm_language = LanguageSetting::GetLanguageInstance();
 	glGenTextures(sizeof(dataLineTexture)/sizeof(unsigned int), dataLineTexture);
-
-	
+		
 }
 
 
@@ -46,15 +46,15 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 	m_commonData->cicleSize = c_size;
 	firstPointx = x;
 	firstPointy = y;
-	if (!ImGui::Begin(ICON_FA_SLIDERS_H" 初始化设置")) {
+	if (!ImGui::Begin(dm_language->m_initWindowTitle.c_str())) {
 		ImGui::End();
 		return;
 	}
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 6));
-	ImGui::InputInt2(u8"长X宽", inputSize);
-	ImGui::InputFloat(u8"行间距", &row_dist, 0.0f, 0.0f, 2);
-	ImGui::InputFloat(u8"列间距", &col_dist, 0.0f, 0.0f, 2);
-	if (ImGui::Button(u8"绘制点阵")) {
+	ImGui::InputInt2(dm_language->m_latticeArea.c_str(), inputSize);
+	ImGui::InputFloat(dm_language->m_rowSpacing.c_str(), &row_dist, 0.0f, 0.0f, 2);
+	ImGui::InputFloat(dm_language->m_colSpacing.c_str(), &col_dist, 0.0f, 0.0f, 2);
+	if (ImGui::Button(dm_language->m_drawLattice.c_str())) {
 		m_commonData->lineList.clear();
 		m_commonData->whMatrix[0] = inputSize[0];
 		m_commonData->whMatrix[1] = inputSize[1];
@@ -66,7 +66,7 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 		ClearMode();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"清除点阵")) {
+	if (ImGui::Button(dm_language->m_clearLattice.c_str())) {
 		m_commonData->whMatrix[0] = inputSize[0] = 0;
 		m_commonData->whMatrix[1] = inputSize[1] = 0; 
 		m_commonData->rowDict = row_dist = 0.0f;
@@ -80,11 +80,12 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 
 	ImGui::Separator();
 	//ImGui::Text(u8"方向选择");
-	const char* items[] = { u8"无", u8"上左纵向", u8"上左纵向Z形", u8"上左横向", u8"上左横向Z形", u8"下左纵向", u8"下左纵向Z形", u8"下左横向", u8"下左横向Z形", u8"上右纵向", u8"上右纵向Z形", u8"上右横向", u8"上右横向Z形", u8"下右纵向", u8"下右纵向Z形", u8"下右横向", u8"下右横向Z形", u8"自定义" };
-
+	//const char* items[] = { u8"无", u8"上左纵向", u8"上左纵向Z形", u8"上左横向", u8"上左横向Z形", u8"下左纵向", u8"下左纵向Z形", u8"下左横向", u8"下左横向Z形", u8"上右纵向", u8"上右纵向Z形", u8"上右横向", u8"上右横向Z形", u8"下右纵向", u8"下右纵向Z形", u8"下右横向", u8"下右横向Z形", u8"自定义" };
+	const char* items[] = { dm_language->m_item0.c_str(), dm_language->m_item1.c_str(), dm_language->m_item2.c_str(), dm_language->m_item3.c_str(), dm_language->m_item4.c_str(), dm_language->m_item5.c_str(), dm_language->m_item6.c_str(), dm_language->m_item7.c_str(), dm_language->m_item8.c_str(),
+		dm_language->m_item9.c_str(), dm_language->m_item10.c_str(), dm_language->m_item11.c_str(), dm_language->m_item12.c_str(), dm_language->m_item13.c_str(), dm_language->m_item14.c_str(), dm_language->m_item15.c_str(), dm_language->m_item16.c_str(), dm_language->m_item17.c_str() };
 	
 	item_current = items[m_commonData->comboSelect];
-	if (ImGui::BeginCombo(u8"灯布局方向", item_current))
+	if (ImGui::BeginCombo(dm_language->m_layoutDirection.c_str(), item_current))
 	{
 		for (int n = 0; n < IM_ARRAYSIZE(items); n++)
 		{
@@ -98,7 +99,7 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 		ImGui::EndCombo();
 	}
 
-	if (ImGui::Button(u8"绘制确认")) {
+	if (ImGui::Button(dm_language->m_drawConcern.c_str())) {
 		//Bug?
 		//m_commonData->lineList.clear();
 		m_commonData->lineList = GetRoute();
@@ -108,7 +109,7 @@ void DrawManage::InitControlWindow(float x, float y, float c_size)
 	}
 	if (isConcern) {
 		ImGui::SameLine();
-		ImGui::Text(u8"设置完成");
+		ImGui::Text(dm_language->m_settingDone.c_str());
 	}
 
 	if (m_commonData->comboSelect != 0 && m_commonData->comboSelect != 17)

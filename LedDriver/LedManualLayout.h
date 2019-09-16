@@ -3,6 +3,7 @@
 #include <deque>
 #include <list>
 #include "CustomTypes.h"
+#include "LanguageSetting.h"
 
 class LedManualLayout
 {
@@ -30,6 +31,7 @@ private:
 	float colDict;
 	LedInt2 liRectPoints[2];
 	std::list<LedInt2> lCoordinate;
+	LanguageSetting *lml_language;
 };
 
 

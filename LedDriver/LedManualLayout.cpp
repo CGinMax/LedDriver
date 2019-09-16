@@ -18,6 +18,7 @@ LedManualLayout::LedManualLayout() :
 	colDict(0.0f)
 {
 	area[0] = area[1] = 2;
+	lml_language = LanguageSetting::GetLanguageInstance();
 }
 
 
@@ -45,14 +46,14 @@ void LedManualLayout::DrawWindow(bool * p_open)
 	}
 	ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_FirstUseEver);
-	ImGui::Begin(ICON_FA_HAND_PAPER" 手工布局窗口", p_open, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+	ImGui::Begin(lml_language->m_manualWindowTitle.c_str(), p_open, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
 	
 
 	ImDrawList *man_draw_list = ImGui::GetWindowDrawList();
 	
-	ImGui::Checkbox(u8"检查连线", &bCheckLine);
+	ImGui::Checkbox(lml_language->m_checkLine.c_str(), &bCheckLine);
 	ImGui::SameLine();
-	if (ImGui::Button(u8"完成布局")) {
+	if (ImGui::Button(lml_language->m_layoutDone.c_str())) {
 		bSettingDone = true;
 	}
 
