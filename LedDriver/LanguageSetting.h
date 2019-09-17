@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+#include <vector>
 #include "rapidjson/document.h"
 class LanguageSetting
 {
@@ -79,9 +79,12 @@ public:
 	std::string m_stopPlay;
 	std::string m_loadVideo;
 	std::string m_defaultEffect;
+	std::vector<std::string> m_effectvec;
 
 	std::string m_manualWindowTitle;
 	std::string m_checkLine;
 	std::string m_layoutDone;
-};			    
+};
+
+const std::string GetExePath();
 

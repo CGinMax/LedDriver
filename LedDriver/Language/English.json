@@ -61,7 +61,14 @@
     "startPlay": "Start Play",
     "stopPlay": "Stop Play",
     "loadVideo": "Load Video",
-    "defaultEffect": "Default Effect"
+    "defaultEffect": "Default Effect",
+    "effect1": "Circle",
+    "effect2": "Jump Circle",
+    "effect3": "Cross",
+    "effect4": "LeftToRight",
+    "effect5": "UpwardToDown",
+    "effect6": "Square Entry",
+    "effect7": "Gradient"
 
   },
   "manualLayoutWindow": {

@@ -9,7 +9,7 @@
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <Psapi.h>
-#pragma comment(lib, "psapi.lib")
+//#pragma comment(lib, "psapi.lib")
 
 
 std::string ControlMode::ToUTF8(const std::string str)
@@ -39,10 +39,7 @@ std::string ControlMode::ToUTF8(const std::string str)
 //获取软件运行的路径，并加上效果文件的文件名
 void ControlMode::InitDefaultEffect()
 {
-	char runPath[512], runProcess[512];
-	memset(runPath, '\0', sizeof(runPath));
-	GetModuleFileName(NULL, runProcess, 512);
-	memcpy(runPath, runProcess, strlen(runProcess) - 14);
+	std::string runPath(GetExePath());
 
 	std::vector<std::string> shortPath = { "\\Effect\\Circle.gif", "\\Effect\\Jump Circle.gif", "\\Effect\\Cross.gif", "\\Effect\\LeftToRight.gif", "\\Effect\\UpToDown.gif", "\\Effect\\Square entry.gif", "\\Effect\\Dawn.gif" };
 	for (int i = 0; i < static_cast<int>(shortPath.size()); i++) {
@@ -245,14 +242,14 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 			if (ImGui::Button(cm_language->m_defaultEffect.c_str()))
 				ImGui::OpenPopup("effect_popup");
 			if (ImGui::BeginPopup("effect_popup")) {
-				for (int i = 0; i < IM_ARRAYSIZE(effectNames); i++) {
+				for (int i = 0; i < static_cast<int>(cm_language->m_effectvec.size()); i++) {
 
-					if (ImGui::Selectable(effectNames[i])) {
+					if (ImGui::Selectable(cm_language->m_effectvec[i].c_str())) {
 						readVideo->SetFileName(effectPath[i]);
 						loadVideoFileUtf = ToUTF8(effectPath[i]);
 						std::thread videoThread(&LedReadVideo::Init, readVideo, m_spData->whMatrix, m_spData->rowDict, m_spData->colDict);
 						videoThread.join();
-						//立马播放
+						//立即播放
 						isVideoPlay = true;
 						dbNowTime = ImGui::GetTime();
 						frameIndex = 0;

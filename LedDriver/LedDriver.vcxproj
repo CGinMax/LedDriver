@@ -88,7 +88,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glfw3.lib;glfw3dll.lib;GLU32.lib;opengl32.lib;opencv_calib3d320d.lib;
+      <AdditionalDependencies>psapi.lib;glfw3.lib;glfw3dll.lib;GLU32.lib;opengl32.lib;opencv_calib3d320d.lib;
 opencv_core320d.lib;
 opencv_features2d320d.lib;
 opencv_flann320d.lib;

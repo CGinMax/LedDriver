@@ -8,8 +8,6 @@ LedProject::LedProject() :
 {
 }
 
-
-
 LedProject::~LedProject()
 {
 }

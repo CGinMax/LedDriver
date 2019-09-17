@@ -1,8 +1,11 @@
 #include "LanguageSetting.h"
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <locale>
 #include <codecvt>
+#include <windows.h>
+#include <Psapi.h>
 #include "IconsFontAwesome5.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/filereadstream.h"
@@ -12,6 +15,7 @@ LanguageSetting *LanguageSetting::languagesetting;
 
 LanguageSetting::LanguageSetting()
 {
+	m_effectvec.resize(7);
 	std::ifstream ifs;
 	ifs.open("Language\\config.data", std::ios::in);
 	ifs >> m_nowLanguage;
@@ -61,48 +65,23 @@ void LanguageSetting::SetCurrentLanguage(std::string &&cur_language)
 
 void LanguageSetting::SetLanguageText()
 {
-	if (m_nowLanguage == "Chinese") {
-		/*std::ifstream ifs("Language\\Chinese.json");
-		rapidjson::IStreamWrapper isw(ifs);
+	//获取文件全路径
+	std::string runPath(GetExePath());
+	char filePath[50] = { 0 };
+	sprintf(filePath, "\\Language\\%s.json", m_nowLanguage.c_str());
+	runPath.append(filePath);
 
-		rapidjson::Document d;
-		d.ParseStream(isw);
-		if (d.IsObject()) {
+	//打开文件并读取
+	FILE *fp = fopen(runPath.c_str(), "rb");
+	char readBuffer[65536];
+	rapidjson::FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
+	rapidjson::Document d;
+	d.ParseStream(frs);
+	if (d.IsObject()) {
 
-		SetChinese(d);
-		}*/
-		FILE *fp = fopen("Language\\Chinese.json", "rb");
-		char readBuffer[65536];
-		rapidjson::FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
-		rapidjson::Document d;
-		d.ParseStream(frs);
-		if (d.IsObject()) {
-
-			SetChinese(d);
-		}
-		fclose(fp);
+		if (m_nowLanguage == "Chinese") SetChinese(d); else if (m_nowLanguage == "English") SetEnglish(d);
 	}
-	else if (m_nowLanguage == "English") {
-		/*std::ifstream ifs("Language\\English.json");
-		rapidjson::IStreamWrapper isw(ifs);
-
-		rapidjson::Document d;
-		d.ParseStream(isw);
-		if (d.IsObject()) {
-
-		SetEnglish(d);
-		}*/
-		FILE *fp = fopen("Language\\English.json", "rb");
-		char readBuffer[65536];
-		rapidjson::FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
-		rapidjson::Document d;
-		d.ParseStream(frs);
-		if (d.IsObject()) {
-
-			SetEnglish(d);
-		}
-		fclose(fp);
-	}
+	fclose(fp);
 
 }
 
@@ -172,6 +151,13 @@ void LanguageSetting::SetChinese(rapidjson::Document & doc)
 	m_stopPlay = ChineseDecode(v3["stopPlay"].GetString());
 	m_loadVideo = ChineseDecode(v3["loadVideo"].GetString());
 	m_defaultEffect = ChineseDecode(v3["defaultEffect"].GetString());
+	
+	for (int i = 0; i < static_cast<int>(m_effectvec.size()); i++)
+	{
+		char effectName[10] = { 0 };
+		sprintf(effectName, "effect%d", i + 1);
+		m_effectvec.at(i) = ChineseDecode(v3[effectName].GetString());
+	}
 
 	rapidjson::Value &v4 = doc["manualLayoutWindow"];
 	m_manualWindowTitle = ChineseDecode(v4["manualWindowTitle"].GetString());
@@ -245,9 +231,25 @@ void LanguageSetting::SetEnglish(rapidjson::Document & doc)
 	m_stopPlay = v3["stopPlay"].GetString();
 	m_loadVideo = v3["loadVideo"].GetString();
 	m_defaultEffect = v3["defaultEffect"].GetString();
+	for (int i = 0; i < static_cast<int>(m_effectvec.size()); i++)
+	{
+		char effectName[10] = { 0 };
+		sprintf(effectName, "effect%d", i + 1);
+		m_effectvec.at(i) = v3[effectName].GetString();
+	}
 
 	rapidjson::Value &v4 = doc["manualLayoutWindow"];
 	m_manualWindowTitle = v4["manualWindowTitle"].GetString();
 	m_checkLine = v4["checkLine"].GetString();
 	m_layoutDone = v4["layoutDone"].GetString();
+}
+
+const std::string GetExePath()
+{
+	std::string runPath;
+	char runProcess[512];
+	memset(runProcess, '\0', sizeof(runProcess));
+	GetModuleFileName(NULL, runProcess, 512);
+	runPath.assign(runProcess, strlen(runProcess) - 14);
+	return runPath;
 }

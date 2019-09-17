@@ -5,7 +5,7 @@
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <Psapi.h>
-#pragma comment(lib, "psapi.lib")
+//#pragma comment(lib, "psapi.lib")
 
 DrawManage::DrawManage(std::shared_ptr<CommonData> commonData, ControlMode *controlMode) :
 	row_dist(0),
@@ -222,16 +222,16 @@ bool DrawManage::IsDrawFinish()
 
 void DrawManage::InitDataLinePixels()
 {
-	char runPath[512], runProcess[512];
+	/*char runPath[512], runProcess[512];
 	memset(runPath, '\0', sizeof(runPath));
 	GetModuleFileName(NULL, runProcess, 512);
-	memcpy(runPath, runProcess, strlen(runProcess) - 14);
+	memcpy(runPath, runProcess, strlen(runProcess) - 14);*/
 	char aFileName[512];
-	
+	std::string runPath(GetExePath());
 	
 	for (int i = 0; i < 16; i++) {
 
-		sprintf(aFileName, "%s\\Resources\\%d.png", runPath, i+1);
+		sprintf(aFileName, "%s\\Resources\\%d.png", runPath.c_str(), i+1);
 
 		cv::Mat bgImage = cv::imread(aFileName, cv::IMREAD_UNCHANGED);
 		cv::resize(bgImage, bgImage, cv::Size(50, 50));

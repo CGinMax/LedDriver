@@ -61,8 +61,14 @@
     "startPlay": "演示播放",
     "stopPlay": "关闭演示",
     "loadVideo": "导入",
-    "defaultEffect": "默认效果"
-
+    "defaultEffect": "默认效果",
+    "effect1": "球运动",
+    "effect2": "扩散跳球",
+    "effect3": "X运动",
+    "effect4": "左向右拉幕",
+    "effect5": "上向下拉幕",
+    "effect6": "正方形扩散",
+    "effect7": "渐变"
   },
   "manualLayoutWindow": {
     "manualWindowTitle": "手动布局窗口",
