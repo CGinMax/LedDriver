@@ -24,6 +24,7 @@ private:
 	std::string SelectFile(LedFileDialog *openFile);
 	std::string ToUTF8(const std::string str);
 	void InitDefaultEffect();
+	void WayConcern(size_t idx);
 public:
 	int nCurrentMode; 
 	int nPageCount;

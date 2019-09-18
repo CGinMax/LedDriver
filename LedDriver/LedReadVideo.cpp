@@ -43,11 +43,12 @@ std::list<vdpoint> LedReadMedia::MakePrimitiveInfo(cv::Mat tmpFrame, int nCol, i
 	std::deque<Mat> vCutedFrame = CutFrameImage(tmpFrame, nCol, nRow);
 	for (size_t i = 0; i < vCutedFrame.size(); i++) {
 
-		if (cv::countNonZero(vCutedFrame[i]) > 64) {
+		if (cv::countNonZero(vCutedFrame[i]) > ((nCol/2) * (nRow/2))) {
 			//Îó²î
 			int frame_rows = vCutedFrame[i].rows;
 			int frame_cols = vCutedFrame[i].cols;
-			auto p = std::make_tuple(int(i % nCol), int(i / nCol), vCutedFrame[i].ptr<unsigned char>(frame_rows / 2)[frame_cols / 2]);
+			//auto p = std::make_tuple(int(i % nCol), int(i / nCol), vCutedFrame[i].ptr<unsigned char>(frame_rows / 2)[frame_cols / 2]);
+			auto p = std::make_tuple(int(i % nCol), int(i / nCol), vCutedFrame[i].ptr<unsigned char>(12)[12]);
 			frameCoordinate.push_back(p);
 			//frameCoordinate.push_back(LedInt2(i % nCol, i / nCol));
 		}
@@ -158,7 +159,7 @@ void LedReadImage::Init(int area[2], float row_dict, float col_dict)
 	split(srcImage, single_channel);
 
 	Mat singleProcessImage;
-	srcImage.channels() == 4 ? singleProcessImage = single_channel[2].clone() : singleProcessImage = single_channel[2].clone();
+	srcImage.channels() == 4 ? singleProcessImage = single_channel[2].clone() : singleProcessImage = single_channel[0].clone();
 
 	m_usefulPrimitive = MakePrimitiveInfo(singleProcessImage, area[0], area[1]);
 	//m_usefulPrimitive = MakePrimitiveInfo(Resize2Single(srcImage, area[0] * int(cicleSize), area[1] * int(cicleSize)), area[0], area[1]);

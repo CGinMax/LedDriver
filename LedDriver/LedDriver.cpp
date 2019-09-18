@@ -219,7 +219,7 @@ void LedDriver::Draw()
 		ImGui::OpenPopup("Information");
 		if (ImGui::BeginPopupModal("Information", NULL)) {
 			ImGui::Indent(30.0f);
-			ImGui::Text(u8"文件保存中");
+			ImGui::Text(language->m_saveInformation.c_str());
 			ImGui::EndPopup();
 		}
 	}

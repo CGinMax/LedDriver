@@ -163,6 +163,7 @@ void LanguageSetting::SetChinese(rapidjson::Document & doc)
 	m_manualWindowTitle = ChineseDecode(v4["manualWindowTitle"].GetString());
 	m_checkLine = ChineseDecode(v4["checkLine"].GetString());
 	m_layoutDone = ChineseDecode(v4["layoutDone"].GetString());
+	m_saveInformation = ChineseDecode(doc["saveInformation"].GetString());
 }
 
 void LanguageSetting::SetEnglish(rapidjson::Document & doc)
@@ -242,6 +243,7 @@ void LanguageSetting::SetEnglish(rapidjson::Document & doc)
 	m_manualWindowTitle = v4["manualWindowTitle"].GetString();
 	m_checkLine = v4["checkLine"].GetString();
 	m_layoutDone = v4["layoutDone"].GetString();
+	m_saveInformation = doc["saveInformation"].GetString();
 }
 
 const std::string GetExePath()

@@ -74,5 +74,6 @@
     "manualWindowTitle": "手动布局窗口",
     "checkLine": "检查连线",
     "layoutDone": "完成布局"
-  }
+  },
+  "saveInformation": "文件保存中"
 }

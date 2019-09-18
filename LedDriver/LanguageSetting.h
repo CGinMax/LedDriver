@@ -84,6 +84,8 @@ public:
 	std::string m_manualWindowTitle;
 	std::string m_checkLine;
 	std::string m_layoutDone;
+
+	std::string m_saveInformation;
 };
 
 const std::string GetExePath();

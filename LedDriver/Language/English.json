@@ -75,5 +75,6 @@
     "manualWindowTitle": "Manual Layout Window",
     "checkLine": "Check Connection",
     "layoutDone": "Complete Connection"
-  }
+  },
+  "saveInformation": "文件保存中"
 }

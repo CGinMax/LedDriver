@@ -36,17 +36,7 @@ std::string ControlMode::ToUTF8(const std::string str)
 	return outstr;
 }
 
-//获取软件运行的路径，并加上效果文件的文件名
-void ControlMode::InitDefaultEffect()
-{
-	std::string runPath(GetExePath());
 
-	std::vector<std::string> shortPath = { "\\Effect\\Circle.gif", "\\Effect\\Jump Circle.gif", "\\Effect\\Cross.gif", "\\Effect\\LeftToRight.gif", "\\Effect\\UpToDown.gif", "\\Effect\\Square entry.gif", "\\Effect\\Dawn.gif" };
-	for (int i = 0; i < static_cast<int>(shortPath.size()); i++) {
-		std::string aFileName = runPath + shortPath[i];
-		effectPath.push_back(aFileName);
-	}
-}
 
 ControlMode::ControlMode() : 
 	nCurrentMode(0),
@@ -111,12 +101,14 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 		switch (nCurrentMode)
 		{
 		case 0:
+			//导入背景
 			if (ImGui::Button(cm_language->m_loadBackground.c_str())) {
 				std::string open_file = this->SelectFile(new ImageFileDialog);
 				
 				if (!open_file.empty()) { loadBackgroundImageFileUtf = ToUTF8(open_file); ManualReadImage(open_file); } 
 			}
 			ImGui::SameLine();
+			//显示背景
 			ImGui::Checkbox(cm_language->m_showBackground.c_str(), &isBackgroundShow);
 			ImGui::SameLine();
 			ImGui::Text(loadBackgroundImageFileUtf.c_str());
@@ -144,6 +136,7 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 				if (ImGui::BeginTabItem(sPage[i].szTabName.c_str(), &(sPage[i].bOpen), tiflag)) {
 					nWhichPage = i;
 
+					//导入黑白图
 					if (ImGui::Button(cm_language->m_importImage.c_str())) {
 						std::string open_file = this->SelectFile(new ImageFileDialog);
 						if (!open_file.empty()) {
@@ -155,37 +148,28 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 								sPage[i].vnCanvas[std::get<1>(*primitiveIter)*m_spData->whMatrix[0] + std::get<0>(*primitiveIter)] = std::get<2>(*primitiveIter);
 							}
 						}
+						WayConcern(i);
 					}
 
+					//选点
 					ImGui::Checkbox(cm_language->m_selectPoint.c_str(), &(sPage[i].bCheckMouse)); ImGui::SameLine();
 					if (ImGui::Checkbox(cm_language->m_gradient1.c_str(), &(sPage[i].bGradientNone2Fill))) {
 						sPage[i].bGradientFill2None = false;
 						sPage[i].bModify = true;
 					}
+					//渐变
 					ImGui::SameLine();
 					if (ImGui::Checkbox(cm_language->m_gradient2.c_str(), &(sPage[i].bGradientFill2None))) {
 						sPage[i].bGradientNone2Fill = false;
 						sPage[i].bModify = true;
 					}
-
+					//时间
 					if (ImGui::InputFloat(cm_language->m_showTime.c_str(), &(sPage[i].fTime), 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal)) {
 						sPage[i].bModify = true;
 					}
+					//确定
 					if (ImGui::Button(cm_language->m_wayConcern.c_str())) {
-						if (!sPage[i].vEffectPoints.empty())
-							sPage[i].vEffectPoints.clear();
-
-						/* 获得值为1的点二维坐标*/
-						//>=10
-						auto effIter = std::find_if(sPage[i].vnCanvas.begin(), sPage[i].vnCanvas.end(), [](unsigned char v) {return (v != 0); });
-						while (effIter != sPage[i].vnCanvas.end())
-						{
-							int dirc = std::distance(sPage[i].vnCanvas.begin(), effIter);
-							LedInt2 effectCoordinate(dirc%m_spData->whMatrix[0], dirc / m_spData->whMatrix[0]);
-							sPage[i].vEffectPoints.push_back(std::make_pair(effectCoordinate, *effIter));
-							effIter = std::find_if(effIter + 1, sPage[i].vnCanvas.end(), [](unsigned char v) {return (v != 0); });
-						}
-						sPage[i].bModify = false;
+						WayConcern(i);
 					}
 
 					ImGui::EndTabItem();
@@ -292,6 +276,8 @@ void ControlMode::ManualReadImage(std::string fileName)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	if (backgroundImagePixels != nullptr) {
+		if (backgroundImageArg.channels == 1)
+			glTexImage2D(GL_TEXTURE_2D, 0, 1, backgroundImageArg.width, backgroundImageArg.height, 0, GL_RED, GL_UNSIGNED_BYTE, (void*)backgroundImagePixels);
 		if (backgroundImageArg.channels == 3)
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, backgroundImageArg.width, backgroundImageArg.height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, (void*)backgroundImagePixels);
 		if (backgroundImageArg.channels == 4)
@@ -345,4 +331,34 @@ std::string ControlMode::SelectFile(LedFileDialog *openFile)
 	std::string filenameUtf8 = openFile->SelectFileNameDialog();
 	delete openFile;
 	return filenameUtf8;
+}
+
+//获取软件运行的路径，并加上效果文件的文件名
+void ControlMode::InitDefaultEffect()
+{
+	std::string runPath(GetExePath());
+
+	std::vector<std::string> shortPath = { "\\Effect\\Circle.gif", "\\Effect\\Jump Circle.gif", "\\Effect\\Cross.gif", "\\Effect\\LeftToRight.gif", "\\Effect\\UpToDown.gif", "\\Effect\\Square entry.gif", "\\Effect\\Dawn.gif" };
+	for (int i = 0; i < static_cast<int>(shortPath.size()); i++) {
+		std::string aFileName = runPath + shortPath[i];
+		effectPath.push_back(aFileName);
+	}
+}
+
+void ControlMode::WayConcern(size_t idx)
+{
+	if (!sPage[idx].vEffectPoints.empty())
+		sPage[idx].vEffectPoints.clear();
+
+	/* 获得值为1的点二维坐标*/
+	//>=10
+	auto effIter = std::find_if(sPage[idx].vnCanvas.begin(), sPage[idx].vnCanvas.end(), [](unsigned char v) {return (v != 0); });
+	while (effIter != sPage[idx].vnCanvas.end())
+	{
+		int dirc = std::distance(sPage[idx].vnCanvas.begin(), effIter);
+		LedInt2 effectCoordinate(dirc%m_spData->whMatrix[0], dirc / m_spData->whMatrix[0]);
+		sPage[idx].vEffectPoints.push_back(std::make_pair(effectCoordinate, *effIter));
+		effIter = std::find_if(effIter + 1, sPage[idx].vnCanvas.end(), [](unsigned char v) {return (v != 0); });
+	}
+	sPage[idx].bModify = false;
 }
