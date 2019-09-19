@@ -42,6 +42,7 @@ private:
 	bool is_open_project;
 	bool is_save_project;
 	bool is_save;
+	bool is_start_project;
 	bool is_open_serial;
 	bool is_english;
 	bool is_chinese;

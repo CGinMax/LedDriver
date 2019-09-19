@@ -18,6 +18,7 @@ public:
 	unsigned char* GetImagePixels();
 	Led::Image &GetImageArg();
 	unsigned int GetImageTexture();
+	void Clear();
 private:
 	void MouseClickDraw(int pageindex);
 	//std::string SelectFileNameDialog(std::string &fileType);

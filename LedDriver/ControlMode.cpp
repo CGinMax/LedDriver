@@ -302,6 +302,13 @@ unsigned int ControlMode::GetImageTexture()
 	return imageTexture;
 }
 
+void ControlMode::Clear()
+{
+	sPage.clear();
+	isBackgroundShow = false;
+	loadVideoFileUtf.clear();
+}
+
 void ControlMode::MouseClickDraw(int pageindex)
 {
 	static int cx = 0;

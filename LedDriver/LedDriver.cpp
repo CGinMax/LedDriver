@@ -69,6 +69,7 @@ LedDriver::LedDriver(std::shared_ptr<CommonData> pData) :
 	is_open_manual(false),
 	is_new_project(false),
 	is_open_project(false),
+	is_start_project(false),
 	is_finishi_image(false),
 	is_save_file_done(true),
 	is_english(false),
@@ -109,7 +110,7 @@ void LedDriver::Draw()
 	if (ImGui::BeginMenu(language->m_files.c_str())) {
 		ImGui::MenuItem(language->m_newProject.c_str(), NULL, &is_new_project);
 		ImGui::MenuItem(language->m_openProject.c_str(), NULL, &is_open_project);
-		ImGui::MenuItem(language->m_saveProject.c_str(), NULL, &is_save_project);
+		ImGui::MenuItem(language->m_saveProject.c_str(), NULL, &is_save_project, is_start_project);
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu(language->m_option.c_str())) {
@@ -242,6 +243,7 @@ void LedDriver::MenuBarControl()
 			InitLineImage();
 		}
 		is_new_project = false;
+		is_start_project = true;
 	}
 	if (is_open_project) {
 		if (project->OpenProject(commonData)) {
@@ -250,6 +252,7 @@ void LedDriver::MenuBarControl()
 			InitLineImage();
 		}
 		is_open_project = false;
+		is_start_project = true;
 	}
 	if (is_save_project) {
 		project->SaveProject();
@@ -273,12 +276,10 @@ void LedDriver::MenuBarControl()
 	}
 	//保存文件
 	if (is_save) {
-		do 
-		{
-			LedFileDialog fileDialog;
-			saveFileName = fileDialog.OpenSaveFileDialog();
-			//取消文件选择，不进行数据保存
-			if (saveFileName.empty()) break;
+		LedFileDialog fileDialog;
+		saveFileName = fileDialog.OpenSaveFileDialog();
+		//取消文件选择，不进行数据保存
+		if (!saveFileName.empty()) {
 			if (controlMode->nCurrentMode == 0) {
 				std::thread save_manual(&LedDriver::ThreadSaveManual, this);
 				save_manual.join();
@@ -287,7 +288,7 @@ void LedDriver::MenuBarControl()
 				std::thread save_video(&LedDriver::ThreadSaveVideo, this);
 				save_video.detach();
 			}
-		} while (0);
+		}
 		
 		is_save = false;
 	}

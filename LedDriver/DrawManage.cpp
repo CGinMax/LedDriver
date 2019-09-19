@@ -135,8 +135,7 @@ void DrawManage::InitMode()
 
 void DrawManage::ClearMode()
 {
-	m_controlMode->sPage.clear();
-	//m_controlMode->GetVideo()
+	m_controlMode->Clear();
 }
 
 /* »ñÈ¡Â·¾¶*/
