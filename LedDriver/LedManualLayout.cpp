@@ -75,9 +75,9 @@ void LedManualLayout::DrawWindow(bool * p_open)
 		}
 		//画第一个点
 		man_draw_list->AddCircleFilled(ImVec2(first_point.x + (*lCoordinate.begin()).x *rowDict, first_point.y + (*lCoordinate.begin()).y*colDict), fLatticeSize*0.5f, IM_COL32_WHITE, 32);
+		
 		std::list<LedInt2>::iterator line_iter1, line_iter2;
 		line_iter1 = line_iter2 = lCoordinate.begin();
-
 		line_iter2++;
 		while (line_iter2 != lCoordinate.end()) {
 			man_draw_list->AddLine(ImVec2(first_point.x + (*line_iter1).x*rowDict, first_point.y + (*line_iter1).y*colDict),

@@ -363,32 +363,6 @@ void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
 	}
 	
 }
-//void LedDriver::SecondSetPaintWindow(ImDrawList *draw_list)
-//{
-//	//遍历每一页的画布
-//	dbNowTime = ImGui::GetTime() - sPage[nIntervalNum].nTickTime;
-//	std::vector<LedInt2>::iterator playIter = sPage[nIntervalNum].vEffectPoints.begin();
-//
-//	//无到有渐变
-//	if (sPage[nIntervalNum].bGradientNone2Fill)
-//		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-//			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (dbNowTime / sPage[nIntervalNum].fTime)), 32);
-//	//有到无渐变
-//	else if (sPage[nIntervalNum].bGradientFill2None)
-//		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-//			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32(255, 255, 255, 255 * (1 - (dbNowTime>sPage[nIntervalNum].fTime?sPage[nIntervalNum].fTime:dbNowTime) / sPage[nIntervalNum].fTime)), 32);
-//	//无渐变
-//	else
-//		for (; playIter != sPage[nIntervalNum].vEffectPoints.end(); playIter++)
-//			draw_list->AddCircleFilled(ImVec2(firstx + playIter->x * draw_area_size, firsty + playIter->y * draw_area_size), draw_area_size*0.5f, IM_COL32_WHITE, 32);
-//	
-//	if (dbNowTime > sPage[nIntervalNum].fTime) {
-//		nIntervalNum++;
-//		nIntervalNum = nIntervalNum < sPage.size() ? nIntervalNum : 0;
-//		sPage[nIntervalNum].nTickTime = ImGui::GetTime();
-//	}
-//	
-//}
 
 void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 {
@@ -415,7 +389,6 @@ void LedDriver::ThridSetPaintWindow(ImDrawList *draw_list)
 
 void LedDriver::SaveDataToFile(unsigned char mod, int frameNumber, int frameSize, int frameTime)
 {
-	//EnterCriticalSection(&cs);
 	is_save_file_done = false;
 	
 	std::lock_guard<std::mutex> threadLock(m_mutex);

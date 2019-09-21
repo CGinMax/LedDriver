@@ -44,13 +44,14 @@ private:
 	unsigned char *backgroundImagePixels;
 	char strSuccess[10];
 	unsigned int imageTexture;
+	ImVec2 cpoint;
+	ImVec2 dragArea;
 	LedReadVideo *readVideo;
 	std::shared_ptr<CommonData> m_spData;
 
 	std::string loadBackgroundImageFileUtf;
 	std::string loadVideoFileUtf;
 	Led::Image backgroundImageArg;
-	//const char* effectNames[7] = { u8"球运动", u8"扩散跳球", u8"X运动", u8"左向右拉幕", u8"上向下拉幕", u8"正方形扩散", u8"渐变" };
 	std::vector<std::string> effectPath;
 	LanguageSetting *cm_language;
 };

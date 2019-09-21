@@ -177,6 +177,8 @@ void ControlMode::ModeSelectWindow(float _x, float _y)
 				if (sPage[i].bCheckMouse) {
 					sPage[i].bModify = true;
 					ImGui::GetForegroundDrawList()->AddCircleFilled(ImGui::GetMousePos(), m_spData->cicleSize*0.5f, IM_COL32_WHITE, 32);
+					ImGui::Begin(u8"²Ù×÷");
+					ImGui::End();
 					MouseClickDraw(i);
 				}
 			}
@@ -313,22 +315,32 @@ void ControlMode::MouseClickDraw(int pageindex)
 {
 	static int cx = 0;
 	static int cy = 0;
+	static int dragx;
+	static int dragy;
 	if (ImGui::IsMouseClicked(0)) {
-		ImVec2 cpoint = ImGui::GetIO().MouseClickedPos[0];
+		cpoint = ImGui::GetIO().MouseClickedPos[0];
 		cx = (int)((cpoint.x - firstPointx + m_spData->cicleSize * 0.5f) / m_spData->rowDict);
 		cy = (int)((cpoint.y - firstPointy + m_spData->cicleSize * 0.5f) / m_spData->colDict);
 		if (cx < m_spData->whMatrix[0] && cy < m_spData->whMatrix[1])
 			sPage[pageindex].vnCanvas[cy*m_spData->whMatrix[0] + cx] = sPage[pageindex].vnCanvas[cy*m_spData->whMatrix[0] + cx] ? 0 : 255;
 	}
-
-	if (ImGui::IsMouseDragging(0)) {
-		ImVec2 dragArea = ImGui::GetIO().MousePos;
-		//ImVec2 dragArea = ImVec2(ImGui::GetMouseDragDelta(0).x + cpoint.x, ImGui::GetMouseDragDelta(0).y + cpoint.y);
-		int dragx = (int)((dragArea.x - firstPointx + m_spData->cicleSize * 0.5f) / m_spData->rowDict);
-		int dragy = (int)((dragArea.y - firstPointy + m_spData->cicleSize * 0.5f) / m_spData->colDict);
-		if (dragx < m_spData->whMatrix[0] && dragy < m_spData->whMatrix[1])
+	else if (ImGui::GetIO().KeyAlt && ImGui::IsMouseDragging(0)) {
+		//ImVec2 dragArea1 = ImGui::GetIO().MouseClickedPos[0];
+		dragArea = ImGui::GetIO().MousePos;
+		dragx = (int)((dragArea.x - firstPointx + m_spData->cicleSize * 0.5f) / m_spData->rowDict);
+		dragy = (int)((dragArea.y - firstPointy + m_spData->cicleSize * 0.5f) / m_spData->colDict);
+		/*if (dragx < m_spData->whMatrix[0] && dragy < m_spData->whMatrix[1])
 			sPage[pageindex].vnCanvas[dragy*m_spData->whMatrix[0] + dragx] = sPage[pageindex].vnCanvas[cy*m_spData->whMatrix[0] + cx];
+	*/
+		ImGui::GetForegroundDrawList()->AddRect(cpoint, dragArea, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+	}
+	else if (ImGui::IsMouseReleased(0)) {
+		for (int i = dragx; i <= cx; i++) {
+			for (int j = cy; j <= dragy; j++) {
+				sPage[pageindex].vnCanvas[j*m_spData->whMatrix[0] + i] = 255;
 
+			}
+		}
 	}
 }
 

@@ -105,6 +105,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	icons_config.PixelSnapH = true;
 	io.Fonts->AddFontFromFileTTF("Fonts/fa-solid-900.ttf", 15.0f, &icons_config, icons_ranges);
 
+	io.MouseDrawCursor = true;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.IniFilename = NULL;
 	
